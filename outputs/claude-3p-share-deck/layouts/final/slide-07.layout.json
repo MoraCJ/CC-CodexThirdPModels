@@ -1,0 +1,811 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/zpdle1",
+    "id": "zpdle1",
+    "slide": 7,
+    "layoutId": "12fc1eb5-719a-4a11-a2dd-eb9af7df1144",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "9870b3af-0fa3-438b-9153-5621996ea9e9",
+    "masterLayoutName": "Master",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "bg1": "#FFFFFF",
+      "bg2": "#000000",
+      "tx1": "#1F1F1F",
+      "tx2": "#FFFFFF",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "typefaces": [
+      "Avenir Next",
+      "PingFang SC"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "12fc1eb5-719a-4a11-a2dd-eb9af7df1144",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "9870b3af-0fa3-438b-9153-5621996ea9e9",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "9870b3af-0fa3-438b-9153-5621996ea9e9",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/itgfmlkj",
+      "id": "1",
+      "bbox": [
+        0,
+        0,
+        1280,
+        720
+      ],
+      "geometry": "rect",
+      "fillColor": "#F7FAFC",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/pkzupwb2",
+      "id": "2",
+      "bbox": [
+        58,
+        50,
+        10,
+        10
+      ],
+      "geometry": "rect",
+      "fillColor": "#176B87",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0z61032l",
+      "id": "3",
+      "bbox": [
+        80,
+        46,
+        520,
+        18
+      ],
+      "geometry": "rect",
+      "text": "C O W O R K",
+      "textPreview": "C O W O R K",
+      "resolvedFontSize": 9.51,
+      "resolvedTextStyle": {
+        "fontSize": 9.51,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "C O W O R K"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "C O W O R K",
+          "runs": [
+            {
+              "index": 1,
+              "text": "C O W O R K",
+              "fontSize": 9.51,
+              "typeface": "PingFang SC",
+              "color": "#60717E",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/72x4nap4",
+      "id": "4",
+      "bbox": [
+        58,
+        84,
+        1000,
+        72
+      ],
+      "geometry": "rect",
+      "text": "Cowork 的关键不是换模型，而是让 host loop 信任 CA。",
+      "textPreview": "Cowork 的关键不是换模型，而是让 host loop 信任 CA。",
+      "resolvedFontSize": 34,
+      "resolvedTextStyle": {
+        "fontSize": 34,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Cowork 的关键不是换模型，而是让 host loop 信任 CA。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Cowork 的关键不是换模型，而是让 host loop 信任 CA。",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cowork 的关键不是换模型，而是让 host loop 信任 CA。",
+              "fontSize": 34,
+              "typeface": "Avenir Next",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ih4byhgn",
+      "id": "5",
+      "bbox": [
+        58,
+        176,
+        960,
+        32
+      ],
+      "geometry": "rect",
+      "text": "Code 可以对话、Cowork 显示 server is busy 时，真正错误可能是 SSL certificate verification failed。",
+      "textPreview": "Code 可以对话、Cowork 显示 server is busy 时，真正错误可能是 SSL certificate verification failed。",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Code 可以对话、Cowork 显示 server is busy 时，真正错误可能是 SSL certificate verification failed。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Code 可以对话、Cowork 显示 server is busy 时，真正错误可能是 SSL certificate verification failed。",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Code 可以对话、Cowork 显示 server is busy 时，真正错误可能是 SSL certificate verification failed。",
+              "fontSize": 16,
+              "typeface": "PingFang SC",
+              "color": "#60717E"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/p8nqxs72",
+      "id": "6",
+      "bbox": [
+        80,
+        258,
+        430,
+        250
+      ],
+      "geometry": "rect",
+      "fillColor": "#FFF4F2",
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/0nuxc3yl",
+      "id": "7",
+      "bbox": [
+        110,
+        286,
+        120,
+        26
+      ],
+      "geometry": "rect",
+      "text": "Before",
+      "textPreview": "Before",
+      "resolvedFontSize": 20,
+      "resolvedTextStyle": {
+        "fontSize": 20,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Before"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Before",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Before",
+              "fontSize": 20,
+              "typeface": "Avenir Next",
+              "color": "#C94A4A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/7y1kre1w",
+      "id": "8",
+      "bbox": [
+        110,
+        338,
+        330,
+        120
+      ],
+      "geometry": "rect",
+      "text": "Cowork -> host loop -> proxy\n\n环境变量继承不完整\nNODE_EXTRA_CA_CERTS 不可靠\nUI 只显示 server is busy",
+      "textPreview": "Cowork -> host loop -> proxy |  | 环境变量继承不完整 | NODE_EXTRA_CA_CERTS 不可靠 | UI 只显示 server is busy",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 5,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Cowork -> host loop -> proxy"
+          },
+          {
+            "index": 2,
+            "text": ""
+          },
+          {
+            "index": 3,
+            "text": "环境变量继承不完整"
+          },
+          {
+            "index": 4,
+            "text": "NODE_EXTRA_CA_CERTS 不可靠"
+          },
+          {
+            "index": 5,
+            "text": "UI 只显示 server is busy"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Cowork -> host loop -> proxy",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cowork -> host loop -> proxy",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "text": "环境变量继承不完整",
+          "runs": [
+            {
+              "index": 1,
+              "text": "环境变量继承不完整",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "text": "NODE_EXTRA_CA_CERTS 不可靠",
+          "runs": [
+            {
+              "index": 1,
+              "text": "NODE_EXTRA_CA_CERTS 不可靠",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "text": "UI 只显示 server is busy",
+          "runs": [
+            {
+              "index": 1,
+              "text": "UI 只显示 server is busy",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ed8v6psf",
+      "id": "9",
+      "bbox": [
+        590,
+        258,
+        500,
+        250
+      ],
+      "geometry": "rect",
+      "fillColor": "#EAF5F7",
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/8v6psfil",
+      "id": "10",
+      "bbox": [
+        620,
+        286,
+        120,
+        26
+      ],
+      "geometry": "rect",
+      "text": "After",
+      "textPreview": "After",
+      "resolvedFontSize": 20,
+      "resolvedTextStyle": {
+        "fontSize": 20,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "After"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "After",
+          "runs": [
+            {
+              "index": 1,
+              "text": "After",
+              "fontSize": 20,
+              "typeface": "Avenir Next",
+              "color": "#2A9D8F",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/xczed8v6",
+      "id": "11",
+      "bbox": [
+        620,
+        338,
+        390,
+        132
+      ],
+      "geometry": "rect",
+      "text": "host binary -> claude-ca-launcher\n\n强制注入：\nNODE_USE_SYSTEM_CA=1\nNODE_EXTRA_CA_CERTS=/path/to/ca.crt\nSSL_CERT_FILE=/path/to/ca.crt",
+      "textPreview": "host binary -> claude-ca-launcher |  | 强制注入： | NODE_USE_SYSTEM_CA=1 | NODE_EXTRA_CA_CERTS=/path/to/ca.crt | SSL_CERT_FILE=/path/to/ca.crt",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 6,
+        "lines": [
+          {
+            "index": 1,
+            "text": "host binary -> claude-ca-launcher"
+          },
+          {
+            "index": 2,
+            "text": ""
+          },
+          {
+            "index": 3,
+            "text": "强制注入："
+          },
+          {
+            "index": 4,
+            "text": "NODE_USE_SYSTEM_CA=1"
+          },
+          {
+            "index": 5,
+            "text": "NODE_EXTRA_CA_CERTS=/path/to/ca.crt"
+          },
+          {
+            "index": 6,
+            "text": "SSL_CERT_FILE=/path/to/ca.crt"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "host binary -> claude-ca-launcher",
+          "runs": [
+            {
+              "index": 1,
+              "text": "host binary -> claude-ca-launcher",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "text": "强制注入：",
+          "runs": [
+            {
+              "index": 1,
+              "text": "强制注入：",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "text": "NODE_USE_SYSTEM_CA=1",
+          "runs": [
+            {
+              "index": 1,
+              "text": "NODE_USE_SYSTEM_CA=1",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "text": "NODE_EXTRA_CA_CERTS=/path/to/ca.crt",
+          "runs": [
+            {
+              "index": 1,
+              "text": "NODE_EXTRA_CA_CERTS=/path/to/ca.crt",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "text": "SSL_CERT_FILE=/path/to/ca.crt",
+          "runs": [
+            {
+              "index": 1,
+              "text": "SSL_CERT_FILE=/path/to/ca.crt",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/qpg3ex0n",
+      "id": "12",
+      "bbox": [
+        228,
+        548,
+        760,
+        72
+      ],
+      "geometry": "rect",
+      "fillColor": "#0E2532",
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fa9w3m94",
+      "id": "13",
+      "bbox": [
+        244,
+        564,
+        728,
+        40
+      ],
+      "geometry": "rect",
+      "text": ".verified + 正确版本目录\n防止 Desktop repair 清空手工 binary",
+      "textPreview": ".verified + 正确版本目录 | 防止 Desktop repair 清空手工 binary",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": ".verified + 正确版本目录"
+          },
+          {
+            "index": 2,
+            "text": "防止 Desktop repair 清空手工 binary"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": ".verified + 正确版本目录",
+          "runs": [
+            {
+              "index": 1,
+              "text": ".verified + 正确版本目录",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "text": "防止 Desktop repair 清空手工 binary",
+          "runs": [
+            {
+              "index": 1,
+              "text": "防止 Desktop repair 清空手工 binary",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/8jqh0fep",
+      "id": "14",
+      "bbox": [
+        58,
+        676,
+        1164,
+        1
+      ],
+      "geometry": "rect",
+      "fillColor": "#D8E2E8",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/x4nap4r6",
+      "id": "15",
+      "bbox": [
+        58,
+        686,
+        850,
+        18
+      ],
+      "geometry": "rect",
+      "text": "Cowork certificate fix",
+      "textPreview": "Cowork certificate fix",
+      "resolvedFontSize": 8,
+      "resolvedTextStyle": {
+        "fontSize": 8,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Cowork certificate fix"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Cowork certificate fix",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cowork certificate fix",
+              "fontSize": 8,
+              "typeface": "PingFang SC",
+              "color": "#60717E"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/qd4vmtwr",
+      "id": "16",
+      "bbox": [
+        1174,
+        682,
+        48,
+        22
+      ],
+      "geometry": "rect",
+      "text": "07",
+      "textPreview": "07",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "right"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "07"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "07",
+          "runs": [
+            {
+              "index": 1,
+              "text": "07",
+              "fontSize": 12,
+              "typeface": "Avenir Next",
+              "color": "#60717E",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

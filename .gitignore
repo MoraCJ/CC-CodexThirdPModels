@@ -1,0 +1,20 @@
+.DS_Store
+
+# Local certificates and private keys
+claude-local-proxy/certs/*.key
+claude-local-proxy/certs/*.csr
+claude-local-proxy/certs/*.srl
+claude-local-proxy/certs/*.crt
+
+# Runtime logs and telemetry
+claude-local-proxy/logs/*.log
+claude-local-proxy/logs/*.jsonl
+
+# Dependency and build outputs
+node_modules/
+.build/
+DerivedData/
+
+# App-local generated files
+macos/ProxySetupApp/build/
+macos/ProxySetupApp/DerivedData/

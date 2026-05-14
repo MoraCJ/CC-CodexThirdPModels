@@ -1,0 +1,1134 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/ccnupl",
+    "id": "ccnupl",
+    "slide": 1,
+    "layoutId": "12fc1eb5-719a-4a11-a2dd-eb9af7df1144",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "9870b3af-0fa3-438b-9153-5621996ea9e9",
+    "masterLayoutName": "Master",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "bg1": "#FFFFFF",
+      "bg2": "#000000",
+      "tx1": "#1F1F1F",
+      "tx2": "#FFFFFF",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "typefaces": [
+      "Avenir Next",
+      "PingFang SC"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "12fc1eb5-719a-4a11-a2dd-eb9af7df1144",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "9870b3af-0fa3-438b-9153-5621996ea9e9",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "9870b3af-0fa3-438b-9153-5621996ea9e9",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/n29gr2p8",
+      "id": "1",
+      "bbox": [
+        0,
+        0,
+        1280,
+        720
+      ],
+      "geometry": "rect",
+      "fillColor": "#F7FAFC",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/gn29gr2p",
+      "id": "2",
+      "bbox": [
+        0,
+        0,
+        1280,
+        720
+      ],
+      "geometry": "rect",
+      "fillColor": "#F7FAFC",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/58z25kb6",
+      "id": "3",
+      "bbox": [
+        58,
+        52,
+        6,
+        64
+      ],
+      "geometry": "rect",
+      "fillColor": "#176B87",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/y90je9cv",
+      "id": "4",
+      "bbox": [
+        82,
+        54,
+        420,
+        22
+      ],
+      "geometry": "rect",
+      "text": "Claude Code Desktop",
+      "textPreview": "Claude Code Desktop",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Claude Code Desktop"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Claude Code Desktop",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Claude Code Desktop",
+              "fontSize": 12,
+              "typeface": "Avenir Next",
+              "color": "#60717E",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/nuxc3ylc",
+      "id": "5",
+      "bbox": [
+        58,
+        170,
+        760,
+        128
+      ],
+      "geometry": "rect",
+      "text": "第三方 API 接入复盘",
+      "textPreview": "第三方 API 接入复盘",
+      "resolvedFontSize": 52,
+      "resolvedTextStyle": {
+        "fontSize": 52,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "第三方 API 接入复盘"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "第三方 API 接入复盘",
+          "runs": [
+            {
+              "index": 1,
+              "text": "第三方 API 接入复盘",
+              "fontSize": 52,
+              "typeface": "Avenir Next",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/gbq1oryt",
+      "id": "6",
+      "bbox": [
+        60,
+        322,
+        700,
+        58
+      ],
+      "geometry": "rect",
+      "text": "本机 HTTPS 代理 + macOS 证书信任 + Claude 槽位映射，解决 CLI 可用但 App / Cowork 不稳定的问题。",
+      "textPreview": "本机 HTTPS 代理 + macOS 证书信任 + Claude 槽位映射，解决 CLI 可用但 App / Cowork 不稳定的问题。",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "本机 HTTPS 代理 + macOS 证书信任 + Claude 槽位映射，解决 CLI 可用但 App /"
+          },
+          {
+            "index": 2,
+            "text": "Cowork 不稳定的问题。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "本机 HTTPS 代理 + macOS 证书信任 + Claude 槽位映射，解决 CLI 可用但 App / Cowork 不稳定的问题。",
+          "runs": [
+            {
+              "index": 1,
+              "text": "本机 HTTPS 代理 + macOS 证书信任 + Claude 槽位映射，解决 CLI 可用但 App / Cowork 不稳定的问题。",
+              "fontSize": 18,
+              "typeface": "PingFang SC",
+              "color": "#60717E"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/5wjudg7a",
+      "id": "7",
+      "bbox": [
+        850,
+        0,
+        430,
+        720
+      ],
+      "geometry": "rect",
+      "fillColor": "#0E2532",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/u54zidon",
+      "id": "8",
+      "bbox": [
+        900,
+        86,
+        220,
+        28
+      ],
+      "geometry": "rect",
+      "text": "最终链路",
+      "textPreview": "最终链路",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "最终链路"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "最终链路",
+          "runs": [
+            {
+              "index": 1,
+              "text": "最终链路",
+              "fontSize": 14,
+              "typeface": "PingFang SC",
+              "color": "#A7CBD6",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/nqxs72x4",
+      "id": "9",
+      "bbox": [
+        900,
+        148,
+        292,
+        176
+      ],
+      "geometry": "rect",
+      "text": "Desktop / Code / Cowork\n统一进本机 HTTPS 代理\n再转发到 Ark",
+      "textPreview": "Desktop / Code / Cowork | 统一进本机 HTTPS 代理 | 再转发到 Ark",
+      "resolvedFontSize": 26,
+      "resolvedTextStyle": {
+        "fontSize": 26,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 4,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Desktop / Code /"
+          },
+          {
+            "index": 2,
+            "text": "Cowork"
+          },
+          {
+            "index": 3,
+            "text": "统一进本机 HTTPS 代理"
+          },
+          {
+            "index": 4,
+            "text": "再转发到 Ark"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Desktop / Code / Cowork",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Desktop / Code / Cowork",
+              "fontSize": 26,
+              "typeface": "Avenir Next",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "text": "统一进本机 HTTPS 代理",
+          "runs": [
+            {
+              "index": 1,
+              "text": "统一进本机 HTTPS 代理",
+              "fontSize": 26,
+              "typeface": "Avenir Next",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "text": "再转发到 Ark",
+          "runs": [
+            {
+              "index": 1,
+              "text": "再转发到 Ark",
+              "fontSize": 26,
+              "typeface": "Avenir Next",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/z25kb6xk",
+      "id": "10",
+      "bbox": [
+        900,
+        342,
+        260,
+        1
+      ],
+      "geometry": "rect",
+      "fillColor": "#315363",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/6hcrmhk3",
+      "id": "11",
+      "bbox": [
+        900,
+        376,
+        220,
+        62
+      ],
+      "geometry": "rect",
+      "text": "2026-05-14\n可分享版",
+      "textPreview": "2026-05-14 | 可分享版",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "2026-05-14"
+          },
+          {
+            "index": 2,
+            "text": "可分享版"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "2026-05-14",
+          "runs": [
+            {
+              "index": 1,
+              "text": "2026-05-14",
+              "fontSize": 14,
+              "typeface": "PingFang SC",
+              "color": "#C7D8DF"
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "text": "可分享版",
+          "runs": [
+            {
+              "index": 1,
+              "text": "可分享版",
+              "fontSize": 14,
+              "typeface": "PingFang SC",
+              "color": "#C7D8DF"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/d8v6psfi",
+      "id": "12",
+      "bbox": [
+        58,
+        518,
+        2,
+        56
+      ],
+      "geometry": "rect",
+      "fillColor": "#176B87",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/onyd0z61",
+      "id": "13",
+      "bbox": [
+        72,
+        514,
+        180,
+        34
+      ],
+      "geometry": "rect",
+      "text": "01",
+      "textPreview": "01",
+      "resolvedFontSize": 28,
+      "resolvedTextStyle": {
+        "fontSize": 28,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "01"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "01",
+          "runs": [
+            {
+              "index": 1,
+              "text": "01",
+              "fontSize": 28,
+              "typeface": "Avenir Next",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/vahoza1g",
+      "id": "14",
+      "bbox": [
+        72,
+        554,
+        180,
+        18
+      ],
+      "geometry": "rect",
+      "text": "入口统一",
+      "textPreview": "入口统一",
+      "resolvedFontSize": 9.51,
+      "resolvedTextStyle": {
+        "fontSize": 9.51,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "入口统一"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "入口统一",
+          "runs": [
+            {
+              "index": 1,
+              "text": "入口统一",
+              "fontSize": 9.51,
+              "typeface": "PingFang SC",
+              "color": "#60717E",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/6tovahoz",
+      "id": "15",
+      "bbox": [
+        72,
+        572,
+        180,
+        28
+      ],
+      "geometry": "rect",
+      "text": "Desktop / CLI 同源",
+      "textPreview": "Desktop / CLI 同源",
+      "resolvedFontSize": 8.2,
+      "resolvedTextStyle": {
+        "fontSize": 8.2,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Desktop / CLI 同源"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Desktop / CLI 同源",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Desktop / CLI 同源",
+              "fontSize": 8.2,
+              "typeface": "PingFang SC",
+              "color": "#60717E"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/dg7adsji",
+      "id": "16",
+      "bbox": [
+        328,
+        518,
+        2,
+        56
+      ],
+      "geometry": "rect",
+      "fillColor": "#2A9D8F",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ovahoza1",
+      "id": "17",
+      "bbox": [
+        342,
+        514,
+        180,
+        34
+      ],
+      "geometry": "rect",
+      "text": "02",
+      "textPreview": "02",
+      "resolvedFontSize": 28,
+      "resolvedTextStyle": {
+        "fontSize": 28,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "02"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "02",
+          "runs": [
+            {
+              "index": 1,
+              "text": "02",
+              "fontSize": 28,
+              "typeface": "Avenir Next",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 18,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/vmtwra5g",
+      "id": "18",
+      "bbox": [
+        342,
+        554,
+        180,
+        18
+      ],
+      "geometry": "rect",
+      "text": "证书可信",
+      "textPreview": "证书可信",
+      "resolvedFontSize": 9.51,
+      "resolvedTextStyle": {
+        "fontSize": 9.51,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "证书可信"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "证书可信",
+          "runs": [
+            {
+              "index": 1,
+              "text": "证书可信",
+              "fontSize": 9.51,
+              "typeface": "PingFang SC",
+              "color": "#60717E",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 19,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/61032lsz",
+      "id": "19",
+      "bbox": [
+        342,
+        572,
+        180,
+        28
+      ],
+      "geometry": "rect",
+      "text": "Keychain + launcher",
+      "textPreview": "Keychain + launcher",
+      "resolvedFontSize": 8.2,
+      "resolvedTextStyle": {
+        "fontSize": 8.2,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Keychain + launcher"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Keychain + launcher",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Keychain + launcher",
+              "fontSize": 8.2,
+              "typeface": "PingFang SC",
+              "color": "#60717E"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 20,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/e9cvixcz",
+      "id": "20",
+      "bbox": [
+        598,
+        518,
+        2,
+        56
+      ],
+      "geometry": "rect",
+      "fillColor": "#D89135",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 21,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/3q5o7qpg",
+      "id": "21",
+      "bbox": [
+        612,
+        514,
+        180,
+        34
+      ],
+      "geometry": "rect",
+      "text": "03",
+      "textPreview": "03",
+      "resolvedFontSize": 28,
+      "resolvedTextStyle": {
+        "fontSize": 28,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "03"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "03",
+          "runs": [
+            {
+              "index": 1,
+              "text": "03",
+              "fontSize": 28,
+              "typeface": "Avenir Next",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 22,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/wb2hwfyx",
+      "id": "22",
+      "bbox": [
+        612,
+        554,
+        180,
+        18
+      ],
+      "geometry": "rect",
+      "text": "槽位映射",
+      "textPreview": "槽位映射",
+      "resolvedFontSize": 9.51,
+      "resolvedTextStyle": {
+        "fontSize": 9.51,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "槽位映射"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "槽位映射",
+          "runs": [
+            {
+              "index": 1,
+              "text": "槽位映射",
+              "fontSize": 9.51,
+              "typeface": "PingFang SC",
+              "color": "#60717E",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 23,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/lwval87e",
+      "id": "23",
+      "bbox": [
+        612,
+        572,
+        180,
+        28
+      ],
+      "geometry": "rect",
+      "text": "Claude 名称保留",
+      "textPreview": "Claude 名称保留",
+      "resolvedFontSize": 8.2,
+      "resolvedTextStyle": {
+        "fontSize": 8.2,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Claude 名称保留"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Claude 名称保留",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Claude 名称保留",
+              "fontSize": 8.2,
+              "typeface": "PingFang SC",
+              "color": "#60717E"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 24,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ex0nuxc3",
+      "id": "24",
+      "bbox": [
+        58,
+        676,
+        1164,
+        1
+      ],
+      "geometry": "rect",
+      "fillColor": "#D8E2E8",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 25,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/3itgfmlk",
+      "id": "25",
+      "bbox": [
+        58,
+        686,
+        850,
+        18
+      ],
+      "geometry": "rect",
+      "text": "Claude Code Desktop third-party inference sharing deck",
+      "textPreview": "Claude Code Desktop third-party inference sharing deck",
+      "resolvedFontSize": 8,
+      "resolvedTextStyle": {
+        "fontSize": 8,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Claude Code Desktop third-party inference sharing deck"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Claude Code Desktop third-party inference sharing deck",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Claude Code Desktop third-party inference sharing deck",
+              "fontSize": 8,
+              "typeface": "PingFang SC",
+              "color": "#60717E"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 26,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/w3m94fu1",
+      "id": "26",
+      "bbox": [
+        1174,
+        682,
+        48,
+        22
+      ],
+      "geometry": "rect",
+      "text": "01",
+      "textPreview": "01",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "right"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "01"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "01",
+          "runs": [
+            {
+              "index": 1,
+              "text": "01",
+              "fontSize": 12,
+              "typeface": "Avenir Next",
+              "color": "#60717E",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}

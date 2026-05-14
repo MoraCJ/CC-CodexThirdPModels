@@ -1,0 +1,1117 @@
+{
+  "schema": "openai.presentation.layout/v4",
+  "unit": "px",
+  "slide": {
+    "aid": "sl/1qifzu",
+    "id": "1qifzu",
+    "slide": 4,
+    "layoutId": "12fc1eb5-719a-4a11-a2dd-eb9af7df1144",
+    "layoutName": "Title Slide",
+    "layoutType": "title",
+    "masterLayoutId": "9870b3af-0fa3-438b-9153-5621996ea9e9",
+    "masterLayoutName": "Master",
+    "frame": {
+      "left": 0,
+      "top": 0,
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "theme": {
+    "colorSchemeName": "ChatGPT",
+    "colors": {
+      "accent1": "#156082",
+      "accent2": "#E97132",
+      "accent3": "#196B24",
+      "accent4": "#0F9ED5",
+      "accent5": "#A02B93",
+      "accent6": "#4EA72E",
+      "bg1": "#FFFFFF",
+      "bg2": "#000000",
+      "tx1": "#1F1F1F",
+      "tx2": "#FFFFFF",
+      "dk1": "#000000",
+      "lt1": "#FFFFFF",
+      "dk2": "#0E2841",
+      "lt2": "#E8E8E8",
+      "hlink": "#467886",
+      "folHlink": "#96607D"
+    },
+    "typefaces": [
+      "Avenir Next",
+      "PingFang SC"
+    ]
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "12fc1eb5-719a-4a11-a2dd-eb9af7df1144",
+      "name": "Title Slide",
+      "type": "title",
+      "parentLayoutId": "9870b3af-0fa3-438b-9153-5621996ea9e9",
+      "elements": []
+    },
+    {
+      "scope": "master",
+      "id": "9870b3af-0fa3-438b-9153-5621996ea9e9",
+      "name": "Master",
+      "type": "master",
+      "elements": []
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/at47y1kr",
+      "id": "1",
+      "bbox": [
+        0,
+        0,
+        1280,
+        720
+      ],
+      "geometry": "rect",
+      "fillColor": "#F7FAFC",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 2,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/lkjm1cfa",
+      "id": "2",
+      "bbox": [
+        58,
+        50,
+        10,
+        10
+      ],
+      "geometry": "rect",
+      "fillColor": "#176B87",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/szqtcj6t",
+      "id": "3",
+      "bbox": [
+        80,
+        46,
+        520,
+        18
+      ],
+      "geometry": "rect",
+      "text": "C E R T I F I C A T E",
+      "textPreview": "C E R T I F I C A T E",
+      "resolvedFontSize": 9.51,
+      "resolvedTextStyle": {
+        "fontSize": 9.51,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "C E R T I F I C A T E"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "C E R T I F I C A T E",
+          "runs": [
+            {
+              "index": 1,
+              "text": "C E R T I F I C A T E",
+              "fontSize": 9.51,
+              "typeface": "PingFang SC",
+              "color": "#60717E",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 4,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/32lszqtc",
+      "id": "4",
+      "bbox": [
+        58,
+        84,
+        900,
+        72
+      ],
+      "geometry": "rect",
+      "text": "macOS 上的关键动作：让证书被系统信任。",
+      "textPreview": "macOS 上的关键动作：让证书被系统信任。",
+      "resolvedFontSize": 36,
+      "resolvedTextStyle": {
+        "fontSize": 36,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "macOS 上的关键动作：让证书被系统信任。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "macOS 上的关键动作：让证书被系统信任。",
+          "runs": [
+            {
+              "index": 1,
+              "text": "macOS 上的关键动作：让证书被系统信任。",
+              "fontSize": 36,
+              "typeface": "Avenir Next",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ahoza1gv",
+      "id": "5",
+      "bbox": [
+        58,
+        178,
+        900,
+        32
+      ],
+      "geometry": "rect",
+      "text": "只让 CLI 信任 CA 不够；Desktop 的 Electron 网络栈和 Cowork host loop 也要能建立可信链。",
+      "textPreview": "只让 CLI 信任 CA 不够；Desktop 的 Electron 网络栈和 Cowork host loop 也要能建立可信链。",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "只让 CLI 信任 CA 不够；Desktop 的 Electron 网络栈和 Cowork host loop 也要能建立可信链。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "只让 CLI 信任 CA 不够；Desktop 的 Electron 网络栈和 Cowork host loop 也要能建立可信链。",
+          "runs": [
+            {
+              "index": 1,
+              "text": "只让 CLI 信任 CA 不够；Desktop 的 Electron 网络栈和 Cowork host loop 也要能建立可信链。",
+              "fontSize": 16,
+              "typeface": "PingFang SC",
+              "color": "#60717E"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 6,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/l87ed8ba",
+      "id": "6",
+      "bbox": [
+        82,
+        286,
+        170,
+        86
+      ],
+      "geometry": "rect",
+      "fillColor": "#FFFFFF",
+      "lineWidth": 0
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/sneloj2t",
+      "id": "7",
+      "bbox": [
+        98,
+        302,
+        138,
+        54
+      ],
+      "geometry": "rect",
+      "text": "本地 CA\nca.crt",
+      "textPreview": "本地 CA | ca.crt",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "本地 CA"
+          },
+          {
+            "index": 2,
+            "text": "ca.crt"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "本地 CA",
+          "runs": [
+            {
+              "index": 1,
+              "text": "本地 CA",
+              "fontSize": 16,
+              "typeface": "PingFang SC",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "text": "ca.crt",
+          "runs": [
+            {
+              "index": 1,
+              "text": "ca.crt",
+              "fontSize": 16,
+              "typeface": "PingFang SC",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 8,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/3q5o7qpg",
+      "id": "8",
+      "bbox": [
+        272,
+        328,
+        90,
+        2
+      ],
+      "geometry": "rect",
+      "fillColor": "#176B87",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/e9cvixcz",
+      "id": "9",
+      "bbox": [
+        360,
+        317,
+        20,
+        22
+      ],
+      "geometry": "rect",
+      "text": ">",
+      "textPreview": ">",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "center"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": ">"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": ">",
+          "runs": [
+            {
+              "index": 1,
+              "text": ">",
+              "fontSize": 18,
+              "typeface": "Avenir Next",
+              "color": "#176B87",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 10,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/87ed8bat",
+      "id": "10",
+      "bbox": [
+        394,
+        286,
+        190,
+        86
+      ],
+      "geometry": "rect",
+      "fillColor": "#EAF5F7",
+      "lineWidth": 0
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/xs72x4na",
+      "id": "11",
+      "bbox": [
+        410,
+        302,
+        158,
+        54
+      ],
+      "geometry": "rect",
+      "text": "Keychain\nSSL trust",
+      "textPreview": "Keychain | SSL trust",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Keychain"
+          },
+          {
+            "index": 2,
+            "text": "SSL trust"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Keychain",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Keychain",
+              "fontSize": 16,
+              "typeface": "PingFang SC",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "text": "SSL trust",
+          "runs": [
+            {
+              "index": 1,
+              "text": "SSL trust",
+              "fontSize": 16,
+              "typeface": "PingFang SC",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 12,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/q1orytsv",
+      "id": "12",
+      "bbox": [
+        604,
+        328,
+        90,
+        2
+      ],
+      "geometry": "rect",
+      "fillColor": "#176B87",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 13,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/fmlkjm1c",
+      "id": "13",
+      "bbox": [
+        692,
+        317,
+        20,
+        22
+      ],
+      "geometry": "rect",
+      "text": ">",
+      "textPreview": ">",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "center"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": ">"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": ">",
+          "runs": [
+            {
+              "index": 1,
+              "text": ">",
+              "fontSize": 18,
+              "typeface": "Avenir Next",
+              "color": "#176B87",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 14,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/8z25kb6x",
+      "id": "14",
+      "bbox": [
+        724,
+        238,
+        190,
+        78
+      ],
+      "geometry": "rect",
+      "fillColor": "#FFFFFF",
+      "lineWidth": 0
+    },
+    {
+      "order": 15,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/1gvy90je",
+      "id": "15",
+      "bbox": [
+        740,
+        254,
+        158,
+        46
+      ],
+      "geometry": "rect",
+      "text": "Electron\nDesktop 3P",
+      "textPreview": "Electron | Desktop 3P",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Electron"
+          },
+          {
+            "index": 2,
+            "text": "Desktop 3P"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Electron",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Electron",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "text": "Desktop 3P",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Desktop 3P",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 16,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/qtcj6tov",
+      "id": "16",
+      "bbox": [
+        724,
+        342,
+        190,
+        78
+      ],
+      "geometry": "rect",
+      "fillColor": "#FFFFFF",
+      "lineWidth": 0
+    },
+    {
+      "order": 17,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/je9cvixc",
+      "id": "17",
+      "bbox": [
+        740,
+        358,
+        158,
+        46
+      ],
+      "geometry": "rect",
+      "text": "host loop\nCowork",
+      "textPreview": "host loop | Cowork",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "host loop"
+          },
+          {
+            "index": 2,
+            "text": "Cowork"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "host loop",
+          "runs": [
+            {
+              "index": 1,
+              "text": "host loop",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "text": "Cowork",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Cowork",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#10202A",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 18,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/8v6psfil",
+      "id": "18",
+      "bbox": [
+        932,
+        328,
+        92,
+        2
+      ],
+      "geometry": "rect",
+      "fillColor": "#2A9D8F",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 19,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/xczed8v6",
+      "id": "19",
+      "bbox": [
+        1022,
+        317,
+        20,
+        22
+      ],
+      "geometry": "rect",
+      "text": ">",
+      "textPreview": ">",
+      "resolvedFontSize": 18,
+      "resolvedTextStyle": {
+        "fontSize": 18,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "center"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": ">"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": ">",
+          "runs": [
+            {
+              "index": 1,
+              "text": ">",
+              "fontSize": 18,
+              "typeface": "Avenir Next",
+              "color": "#2A9D8F",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 20,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hoza1gvy",
+      "id": "20",
+      "bbox": [
+        1052,
+        286,
+        150,
+        86
+      ],
+      "geometry": "rect",
+      "fillColor": "#0E2532",
+      "lineWidth": 0
+    },
+    {
+      "order": 21,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/s36hcrmh",
+      "id": "21",
+      "bbox": [
+        1068,
+        302,
+        118,
+        54
+      ],
+      "geometry": "rect",
+      "text": "Local proxy\nHTTPS OK",
+      "textPreview": "Local proxy | HTTPS OK",
+      "resolvedFontSize": 15,
+      "resolvedTextStyle": {
+        "fontSize": 15,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "Local proxy"
+          },
+          {
+            "index": 2,
+            "text": "HTTPS OK"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Local proxy",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Local proxy",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "text": "HTTPS OK",
+          "runs": [
+            {
+              "index": 1,
+              "text": "HTTPS OK",
+              "fontSize": 15,
+              "typeface": "PingFang SC",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 22,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/zidonyd0",
+      "id": "22",
+      "bbox": [
+        96,
+        500,
+        1000,
+        78
+      ],
+      "geometry": "rect",
+      "fillColor": "#F7EFE2",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 23,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/a1gvy90j",
+      "id": "23",
+      "bbox": [
+        120,
+        516,
+        120,
+        24
+      ],
+      "geometry": "rect",
+      "text": "SSH 限制",
+      "textPreview": "SSH 限制",
+      "resolvedFontSize": 16,
+      "resolvedTextStyle": {
+        "fontSize": 16,
+        "typeface": "PingFang SC",
+        "bold": true,
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "SSH 限制"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "SSH 限制",
+          "runs": [
+            {
+              "index": 1,
+              "text": "SSH 限制",
+              "fontSize": 16,
+              "typeface": "PingFang SC",
+              "color": "#D89135",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 24,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/hgn29gr2",
+      "id": "24",
+      "bbox": [
+        242,
+        514,
+        780,
+        42
+      ],
+      "geometry": "rect",
+      "text": "远程 SSH 下写 System keychain 可能被 macOS 授权拦截；需要目标 Mac 本机交互式 sudo，或由 MDM / 配置描述文件下发。",
+      "textPreview": "远程 SSH 下写 System keychain 可能被 macOS 授权拦截；需要目标 Mac 本机交互式 sudo，或由 MDM / 配置描述文件下发。",
+      "resolvedFontSize": 14,
+      "resolvedTextStyle": {
+        "fontSize": 14,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 2,
+        "lines": [
+          {
+            "index": 1,
+            "text": "远程 SSH 下写 System keychain 可能被 macOS 授权拦截；需要目标 Mac 本机交互式 sudo，或由 MDM /"
+          },
+          {
+            "index": 2,
+            "text": "配置描述文件下发。"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "远程 SSH 下写 System keychain 可能被 macOS 授权拦截；需要目标 Mac 本机交互式 sudo，或由 MDM / 配置描述文件下发。",
+          "runs": [
+            {
+              "index": 1,
+              "text": "远程 SSH 下写 System keychain 可能被 macOS 授权拦截；需要目标 Mac 本机交互式 sudo，或由 MDM / 配置描述文件下发。",
+              "fontSize": 14,
+              "typeface": "PingFang SC",
+              "color": "#10202A"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 25,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/svu9knih",
+      "id": "25",
+      "bbox": [
+        58,
+        676,
+        1164,
+        1
+      ],
+      "geometry": "rect",
+      "fillColor": "#D8E2E8",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 26,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/za1gvy90",
+      "id": "26",
+      "bbox": [
+        58,
+        686,
+        850,
+        18
+      ],
+      "geometry": "rect",
+      "text": "macOS certificate trust",
+      "textPreview": "macOS certificate trust",
+      "resolvedFontSize": 8,
+      "resolvedTextStyle": {
+        "fontSize": 8,
+        "typeface": "PingFang SC",
+        "alignment": "left"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "macOS certificate trust"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "macOS certificate trust",
+          "runs": [
+            {
+              "index": 1,
+              "text": "macOS certificate trust",
+              "fontSize": 8,
+              "typeface": "PingFang SC",
+              "color": "#60717E"
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    },
+    {
+      "order": 27,
+      "kind": "shape",
+      "scope": "slide",
+      "aid": "sh/ap4r65wj",
+      "id": "27",
+      "bbox": [
+        1174,
+        682,
+        48,
+        22
+      ],
+      "geometry": "rect",
+      "text": "04",
+      "textPreview": "04",
+      "resolvedFontSize": 12,
+      "resolvedTextStyle": {
+        "fontSize": 12,
+        "typeface": "Avenir Next",
+        "bold": true,
+        "alignment": "right"
+      },
+      "textLayout": {
+        "lineCount": 1,
+        "lines": [
+          {
+            "index": 1,
+            "text": "04"
+          }
+        ]
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "04",
+          "runs": [
+            {
+              "index": 1,
+              "text": "04",
+              "fontSize": 12,
+              "typeface": "Avenir Next",
+              "color": "#60717E",
+              "bold": true
+            }
+          ]
+        }
+      ],
+      "fillColor": "rgba(0, 0, 0, 0)",
+      "lineColor": "rgba(0, 0, 0, 0)",
+      "lineWidth": 0
+    }
+  ],
+  "composeRuns": []
+}
