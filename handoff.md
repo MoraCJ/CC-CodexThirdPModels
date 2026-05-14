@@ -178,6 +178,42 @@ cd macos/ProxySetupApp && swift build
 - 未写 LaunchAgent。
 - 未写生产 Keychain 项。
 
+### 0.2.8 Task 6 完成记录：代理文件安装器
+
+已完成 Task 6：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/ProxyInstaller.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/ProxyInstallerTests.swift`。
+- 新增 App 内置代理资源目录：
+  - `macos/ProxySetupApp/Sources/ProxySetupApp/Resources/ProxyBundle/server.js`
+  - `macos/ProxySetupApp/Sources/ProxySetupApp/Resources/ProxyBundle/telemetry.js`
+  - `macos/ProxySetupApp/Sources/ProxySetupApp/Resources/ProxyBundle/keychain.js`
+  - `macos/ProxySetupApp/Sources/ProxySetupApp/Resources/ProxyBundle/openssl-server.cnf`
+  - `macos/ProxySetupApp/Sources/ProxySetupApp/Resources/ProxyBundle/bin/claude-ca-launcher.c`
+- `keychain.js` 已纳入 bundle，因为 Task 1 后 `server.js` 依赖它。
+- `ProxyInstaller` 当前能力：
+  - 创建 app-managed 目录结构。
+  - 将 bundled proxy 文件复制到安装目录。
+  - 写入不含真实 API Key 的 `config/proxy.env`。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter ProxyInstallerTests
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+node --check macos/ProxySetupApp/Sources/ProxySetupApp/Resources/ProxyBundle/server.js
+node --check macos/ProxySetupApp/Sources/ProxySetupApp/Resources/ProxyBundle/telemetry.js
+node --check macos/ProxySetupApp/Sources/ProxySetupApp/Resources/ProxyBundle/keychain.js
+```
+
+安全确认：
+
+- 测试只写临时目录。
+- 未修改 `~/Library/Application Support`。
+- 未修改 `~/.codex/config.toml`。
+- 未写真实 LaunchAgent 或生产 Keychain 项。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
