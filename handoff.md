@@ -149,6 +149,35 @@ cd macos/ProxySetupApp && swift build
 - 未写入生产 Keychain service/account。
 - 未修改 `~/.codex/config.toml` 或其他本机真实客户端配置。
 
+### 0.2.7 Task 5 完成记录：命令执行与环境检查
+
+已完成 Task 5：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Models/StatusModels.swift`。
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/CommandRunner.swift`。
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/PreflightService.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/PreflightServiceTests.swift`。
+- `CommandRunner` 支持：
+  - shell builtin `command -v <tool>` 的只读检测。
+  - absolute executable。
+  - 通过 `/usr/bin/env` 查找普通 executable。
+- `PreflightService` 当前检测 `node`、`claude`、`codex` 三个命令。
+- 测试使用 `MockCommandRunner`，不读取或写入本机真实配置。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter PreflightServiceTests
+cd macos/ProxySetupApp && swift build
+```
+
+安全确认：
+
+- 未修改 `~/.codex/config.toml`。
+- 未修改 `~/.claude/settings.json`。
+- 未写 LaunchAgent。
+- 未写生产 Keychain 项。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
