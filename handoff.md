@@ -37,6 +37,32 @@
 
 任务卡已经拆好。按计划应先执行 Task 1：让 Node 代理从 macOS Keychain 读取真实 provider API Key，再进入 SwiftUI App scaffold。原因是 App 的安全设计依赖“真实 key 只存在 Keychain，客户端配置只放本地非敏感 token”。
 
+### 0.2.2 Task 1 完成记录：Node 代理读取 Keychain 上游 key
+
+已在实现分支 `feature/macos-local-proxy-setup-app` 完成 Task 1：
+
+- 新增 `claude-local-proxy/keychain.js`。
+- 新增 `claude-local-proxy/tests/keychain.test.js`。
+- 更新 `claude-local-proxy/server.js`：
+  - Claude 透传请求不再转发客户端传入的 `Authorization`。
+  - Codex bridge 不再转发客户端传入的 `Authorization`。
+  - 代理优先从 macOS Keychain 读取真实 provider API Key。
+  - Keychain 不存在对应 key 时，可回退到环境变量 `CLAUDE_UPSTREAM_API_KEY`、`CODEX_UPSTREAM_API_KEY`、`ANTHROPIC_AUTH_TOKEN`、`OPENAI_API_KEY` 或 `ARK_API_KEY`。
+
+验证通过：
+
+```bash
+node --test claude-local-proxy/tests/keychain.test.js
+node --test claude-local-proxy/tests/telemetry.test.js
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+```
+
+剩余风险：
+
+- 尚未在真实 macOS Keychain 中写入 provider key 并做端到端请求验证；这会在 SwiftUI App 的 KeychainService 和安装流程完成后验证。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。

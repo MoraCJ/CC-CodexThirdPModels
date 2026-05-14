@@ -12,6 +12,7 @@ const {
   normalizeUsage,
   readJsonlEvents,
 } = require('./telemetry');
+const { createKeychainReader, providerAuthHeader } = require('./keychain');
 
 const listenHost = process.env.LISTEN_HOST || '127.0.0.1';
 const listenPort = Number(process.env.LISTEN_PORT || 38443);
@@ -30,6 +31,10 @@ const codexDefaultModel = process.env.CODEX_DEFAULT_MODEL || smallModel;
 const telemetryFile = process.env.TELEMETRY_FILE || path.join(__dirname, 'logs', 'telemetry.jsonl');
 const telemetryReadLimit = Number(process.env.TELEMETRY_READ_LIMIT || 5000);
 const telemetryCaptureBytes = Number(process.env.TELEMETRY_CAPTURE_BYTES || 2 * 1024 * 1024);
+const keychainReader = createKeychainReader();
+const keychainService = process.env.KEYCHAIN_SERVICE || 'CJLocalProxy';
+const claudeKeychainAccount = process.env.CLAUDE_KEYCHAIN_ACCOUNT || 'claude-upstream-api-key';
+const codexKeychainAccount = process.env.CODEX_KEYCHAIN_ACCOUNT || 'codex-upstream-api-key';
 
 const hopByHopHeaders = new Set([
   'connection',
@@ -47,6 +52,7 @@ function scrubHeaders(headers) {
   for (const [name, value] of Object.entries(headers)) {
     const lower = name.toLowerCase();
     if (hopByHopHeaders.has(lower)) continue;
+    if (lower === 'authorization') continue;
     if (lower === 'host') continue;
     next[name] = value;
   }
@@ -62,6 +68,24 @@ function targetFor(requestUrl) {
     ? new URL(requestUrl, upstreamBase.origin).pathname
     : `${upstreamBase.pathname.replace(/\/$/, '')}${target.pathname}`;
   return target;
+}
+
+async function upstreamAuthorization(tool) {
+  if (tool === 'codex') {
+    return providerAuthHeader({
+      reader: keychainReader,
+      service: keychainService,
+      account: codexKeychainAccount,
+      fallback: process.env.CODEX_UPSTREAM_API_KEY || process.env.OPENAI_API_KEY || process.env.ARK_API_KEY,
+    });
+  }
+
+  return providerAuthHeader({
+    reader: keychainReader,
+    service: keychainService,
+    account: claudeKeychainAccount,
+    fallback: process.env.CLAUDE_UPSTREAM_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN || process.env.ARK_API_KEY,
+  });
 }
 
 function mappedModel(model) {
@@ -604,8 +628,6 @@ async function callCodexChatCompletions(chatRequest, authorization) {
     'content-type': 'application/json',
   };
   if (authorization) headers.authorization = authorization;
-  if (!authorization && process.env.OPENAI_API_KEY) headers.authorization = `Bearer ${process.env.OPENAI_API_KEY}`;
-  if (!authorization && process.env.ARK_API_KEY) headers.authorization = `Bearer ${process.env.ARK_API_KEY}`;
 
   const response = await fetch(target, {
     method: 'POST',
@@ -765,7 +787,8 @@ async function handleCodexResponses(req, res, source, requestUrl) {
     console.log(
       `${new Date().toISOString()} codex responses model ${body.model || codexDefaultModel} -> ${chatRequest.model}`
     );
-    const chat = await callCodexChatCompletions(chatRequest, req.headers.authorization);
+    const authorization = await upstreamAuthorization('codex');
+    const chat = await callCodexChatCompletions(chatRequest, authorization);
     const response = chatCompletionToResponses(chat, chatRequest.model);
     const ms = Date.now() - started;
     console.log(`${new Date().toISOString()} ${req.method} ${req.url} -> codex responses 200 ${ms}ms`);
@@ -892,6 +915,8 @@ const server = https.createServer(
       return;
     }
     const headers = scrubHeaders(req.headers);
+    const authorization = await upstreamAuthorization('claude');
+    if (authorization) headers.authorization = authorization;
     headers['content-length'] = String(upstream.body.length);
 
     const proxyReq = https.request(
