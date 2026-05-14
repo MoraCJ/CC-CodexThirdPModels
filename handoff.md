@@ -214,6 +214,35 @@ node --check macos/ProxySetupApp/Sources/ProxySetupApp/Resources/ProxyBundle/key
 - 未修改 `~/.codex/config.toml`。
 - 未写真实 LaunchAgent 或生产 Keychain 项。
 
+### 0.2.9 Task 7 完成记录：客户端配置生成
+
+已完成 Task 7：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/ClientConfigService.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/ClientConfigServiceTests.swift`。
+- 支持生成：
+  - Claude CLI `settings.json` 片段，base URL 指向 `/claude-cli`。
+  - Claude Desktop gateway config，base URL 指向 `/claude-desktop`。
+  - Codex App provider，base URL 指向 `/codex-app/v1`。
+  - Codex CLI provider 和 profiles，base URL 指向 `/codex-cli/v1`。
+- 客户端配置只写 `CJ_LOCAL_PROXY_TOKEN` 本地占位 token，不写真实 provider API Key。
+- TOML 字符串支持 quote/backslash 转义。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter ClientConfigServiceTests
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+```
+
+安全确认：
+
+- 只生成配置字符串。
+- 未写 `~/.codex/config.toml`。
+- 未写 `~/.claude/settings.json`。
+- 未写 Claude Desktop config。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
