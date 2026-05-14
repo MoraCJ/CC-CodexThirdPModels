@@ -14,6 +14,7 @@ claude-local-proxy/logs/*.jsonl
 node_modules/
 .build/
 DerivedData/
+.worktrees/
 
 # App-local generated files
 macos/ProxySetupApp/build/
