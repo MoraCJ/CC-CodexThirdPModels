@@ -124,6 +124,31 @@ cd macos/ProxySetupApp && swift test --filter SetupConfigurationTests
 cd macos/ProxySetupApp && swift build
 ```
 
+### 0.2.6 Task 4 完成记录：KeychainService 与脱敏工具
+
+已完成 Task 4：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/KeychainService.swift`。
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/LogService.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/KeychainServiceTests.swift`。
+- Keychain 测试使用测试专用 service：`CJLocalProxyTests`。
+- 测试账号使用随机 UUID，并在 `defer` 中清理。
+- 脱敏逻辑覆盖：
+  - `Authorization: Bearer ...` -> `Authorization: Bearer <REDACTED>`。
+  - API Key 显示只保留前 4 和后 4 位。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter KeychainServiceTests
+cd macos/ProxySetupApp && swift build
+```
+
+安全确认：
+
+- 未写入生产 Keychain service/account。
+- 未修改 `~/.codex/config.toml` 或其他本机真实客户端配置。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
