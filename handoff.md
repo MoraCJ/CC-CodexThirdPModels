@@ -275,6 +275,33 @@ cd macos/ProxySetupApp && swift test
 - 未执行 `launchctl`。
 - 未修改本机 Codex/Claude 配置。
 
+### 0.2.11 Task 9 完成记录：证书服务
+
+已完成 Task 9：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/CertificateService.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/CertificateServiceTests.swift`。
+- `CertificateService` 当前能力：
+  - 生成 OpenSSL server config。
+  - SAN 包含 `127.0.0.1`、`localhost`、`::1`。
+  - 生成本机 CA/server cert 所需的 OpenSSL 命令数组。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter CertificateServiceTests
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+```
+
+安全确认：
+
+- 只生成配置文本和命令数组。
+- 未执行 OpenSSL。
+- 未写系统 Keychain。
+- 未信任证书。
+- 未修改本机 Codex/Claude 配置。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
