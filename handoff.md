@@ -327,6 +327,36 @@ cd macos/ProxySetupApp && swift test
 - 未启动或停止服务。
 - 未修改本机 Codex/Claude 配置。
 
+### 0.2.13 Task 11 完成记录：设置向导 UI
+
+已完成 Task 11：
+
+- 更新 `AppState`，加入内存态 `setupConfiguration` 和 sidebar selection。
+- 更新 `RootView`，使用 macOS `NavigationSplitView`。
+- 更新 `StatusDashboardView`，展示 Proxy、LaunchAgent、Certificate 状态占位与 dashboard/verification 操作。
+- 新增：
+  - `ProviderSettingsView`
+  - `ModelMappingView`
+  - `VerificationResultsView`
+  - `SetupWizardView`
+- 设置向导目前只编辑内存配置，尚未接入“应用配置到本机”的执行路径。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+./script/build_and_run.sh --verify
+```
+
+安全确认：
+
+- App 启动验证只打开 scaffold UI。
+- 未写 `~/.codex/config.toml`。
+- 未写 Claude 配置。
+- 未写 LaunchAgent。
+- 未写生产 Keychain 项。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
