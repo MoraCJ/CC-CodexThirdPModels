@@ -302,6 +302,31 @@ cd macos/ProxySetupApp && swift test
 - 未信任证书。
 - 未修改本机 Codex/Claude 配置。
 
+### 0.2.12 Task 10 完成记录：验证与状态汇总
+
+已完成 Task 10：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/VerificationService.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/VerificationServiceTests.swift`。
+- 当前能力：
+  - 生成 `/health`、`/dashboard`、`/telemetry/summary` 和四类客户端前缀 health URL。
+  - 表示验证状态：`notRun`、`passed`、`failed`。
+  - 汇总 passed/failed 数量和整体是否通过。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter VerificationServiceTests
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+```
+
+安全确认：
+
+- 未请求本机代理。
+- 未启动或停止服务。
+- 未修改本机 Codex/Claude 配置。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
