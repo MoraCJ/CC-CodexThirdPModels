@@ -1,7 +1,33 @@
 import Foundation
 
+enum ProviderProtocol: String, CaseIterable, Codable, Identifiable {
+    case anthropicCompatible
+    case openAICompatible
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .anthropicCompatible:
+            return "Anthropic 兼容 / Anthropic-compatible"
+        case .openAICompatible:
+            return "OpenAI 兼容 / OpenAI-compatible"
+        }
+    }
+
+    var shortTitle: String {
+        switch self {
+        case .anthropicCompatible:
+            return "Anthropic"
+        case .openAICompatible:
+            return "OpenAI"
+        }
+    }
+}
+
 struct ProviderConfiguration: Equatable, Codable {
     var isEnabled: Bool
+    var protocolType: ProviderProtocol
     var baseURL: String
     var keychainAccount: String
 }
@@ -34,11 +60,13 @@ struct SetupConfiguration: Equatable, Codable {
         keychainService: "CJLocalProxy",
         claudeProvider: ProviderConfiguration(
             isEnabled: true,
+            protocolType: .anthropicCompatible,
             baseURL: "https://ark.cn-beijing.volces.com/api/coding",
             keychainAccount: "claude-upstream-api-key"
         ),
         codexProvider: ProviderConfiguration(
             isEnabled: true,
+            protocolType: .openAICompatible,
             baseURL: "https://ark.cn-beijing.volces.com/api/coding/v3",
             keychainAccount: "codex-upstream-api-key"
         ),
@@ -89,11 +117,29 @@ struct SetupConfiguration: Equatable, Codable {
         guard claudeProvider.isEnabled || codexProvider.isEnabled else {
             throw ValidationError.noEnabledProvider
         }
+        guard !listenHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw ValidationError.emptyListenHost
+        }
         if claudeProvider.isEnabled {
             try validateHTTPS(claudeProvider.baseURL)
+            guard !claudeModels.opus.trimmed.isEmpty,
+                  !claudeModels.sonnet.trimmed.isEmpty,
+                  !claudeModels.haiku.trimmed.isEmpty else {
+                throw ValidationError.emptyClaudeModel
+            }
         }
         if codexProvider.isEnabled {
             try validateHTTPS(codexProvider.baseURL)
+            guard !codexProfiles.isEmpty else {
+                throw ValidationError.emptyCodexProfiles
+            }
+            for profile in codexProfiles {
+                guard !profile.name.trimmed.isEmpty,
+                      !profile.model.trimmed.isEmpty,
+                      !profile.reasoningEffort.trimmed.isEmpty else {
+                    throw ValidationError.emptyCodexProfile
+                }
+            }
         }
         guard (1...65535).contains(listenPort) else {
             throw ValidationError.invalidPort
@@ -112,5 +158,36 @@ struct SetupConfiguration: Equatable, Codable {
         case noEnabledProvider
         case invalidProviderURL(String)
         case invalidPort
+        case emptyListenHost
+        case emptyClaudeModel
+        case emptyCodexProfiles
+        case emptyCodexProfile
+    }
+}
+
+extension SetupConfiguration.ValidationError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .noEnabledProvider:
+            return "至少启用 Claude 或 Codex 一个 provider / Enable at least one provider"
+        case .invalidProviderURL(let value):
+            return "Provider Base URL 必须是 HTTPS：\(value)"
+        case .invalidPort:
+            return "端口必须在 1...65535 / Port must be 1...65535"
+        case .emptyListenHost:
+            return "监听 Host 不能为空 / Listen host is required"
+        case .emptyClaudeModel:
+            return "Claude 三个模型名都不能为空 / Claude model names are required"
+        case .emptyCodexProfiles:
+            return "至少保留一个 Codex profile / Add at least one Codex profile"
+        case .emptyCodexProfile:
+            return "Codex profile、model、reasoning 都不能为空 / Complete every Codex profile"
+        }
+    }
+}
+
+private extension String {
+    var trimmed: String {
+        trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

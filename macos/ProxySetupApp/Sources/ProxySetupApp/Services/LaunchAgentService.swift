@@ -3,6 +3,13 @@ import Foundation
 struct LaunchAgentService {
     var label: String
 
+    struct ControlCommands: Equatable {
+        var bootstrap: [String]
+        var kickstart: [String]
+        var printStatus: [String]
+        var bootout: [String]
+    }
+
     func renderPlist(nodePath: String, proxyDirectory: URL, config: SetupConfiguration) -> String {
         let proxyPath = proxyDirectory.path
         return """
@@ -46,6 +53,17 @@ struct LaunchAgentService {
         </dict>
         </plist>
         """
+    }
+
+    func controlCommands(plistURL: URL, userID: Int) -> ControlCommands {
+        let domain = "gui/\(userID)"
+        let serviceTarget = "\(domain)/\(label)"
+        return ControlCommands(
+            bootstrap: ["launchctl", "bootstrap", domain, plistURL.path],
+            kickstart: ["launchctl", "kickstart", "-k", serviceTarget],
+            printStatus: ["launchctl", "print", serviceTarget],
+            bootout: ["launchctl", "bootout", domain, plistURL.path]
+        )
     }
 
     private func xml(_ value: String) -> String {

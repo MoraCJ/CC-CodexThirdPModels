@@ -23,4 +23,24 @@ struct CertificateServiceTests {
         #expect(commands[4].contains("-extensions"))
         #expect(commands[4].contains("req_ext"))
     }
+
+    @Test
+    func trustCommandTargetsLoginKeychainWithoutRunningSecurity() {
+        let directory = URL(fileURLWithPath: "/tmp/proxy/certs")
+        let command = CertificateService().trustCommand(
+            certsDirectory: directory,
+            loginKeychainPath: "/Users/cj/Library/Keychains/login.keychain-db"
+        )
+
+        #expect(command == [
+            "security",
+            "add-trusted-cert",
+            "-d",
+            "-r",
+            "trustRoot",
+            "-k",
+            "/Users/cj/Library/Keychains/login.keychain-db",
+            "/tmp/proxy/certs/ca.crt",
+        ])
+    }
 }

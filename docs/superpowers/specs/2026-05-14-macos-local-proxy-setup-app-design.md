@@ -24,6 +24,23 @@ App 使用 SwiftUI 开发，包含三个主要界面：
 
 第一版以普通本地 macOS App 方式交付开发和测试。签名 `.pkg` 安装包可以后续再做，不属于 v1 必须范围。
 
+## 当前 v1 实现状态
+
+截至 2026-05-15，`macos/ProxySetupApp` 已具备第一版本机设置程序的主体：
+
+- 主窗口与菜单栏入口。
+- 状态页展示 Proxy、LaunchAgent、证书、Keychain 和四类客户端分流路径。
+- 设置向导支持 Anthropic-compatible / OpenAI-compatible 类型选择。
+- 用户可输入 Claude/Codex Base URL、API Key、Keychain account 和模型名。
+- API Key 只通过显式按钮保存到 macOS Keychain，保存后清空明文输入框。
+- Codex profiles 可新增、删除，并选择 reasoning effort。
+- 验证页展示 health、dashboard、telemetry summary 和四类客户端 health URL。
+- 验证页展示 Claude/Codex 配置预览，预览中只包含 `CJ_LOCAL_PROXY_TOKEN`，不包含真实 provider API Key。
+- LaunchAgent service 生成 `RunAtLoad` / `KeepAlive` plist，并生成 launchctl 控制命令数组。
+- Certificate service 生成 OpenSSL 证书命令和 login keychain 信任命令数组。
+
+当前自动化验证仍不会写真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、`~/Library/LaunchAgents` 或生产 Keychain 项。真实安装执行路径应在 App UI 中由用户显式点击触发，并保留备份与回滚。
+
 ## 支持的配置
 
 App 允许用户配置以下内容。
@@ -73,7 +90,7 @@ Codex 配置：
    - 收集 Claude 和 Codex 的服务商配置。
    - 校验 Base URL 是否为合法 HTTPS URL。
    - 将 API Key 存入 macOS Keychain。
-   - 保存后只显示脱敏后的 key。
+   - 保存后清空明文输入框，并只显示保存状态与 account，不显示真实 key。
 
 3. 模型映射
    - Claude 侧把 Opus、Sonnet、Haiku 三个槽位映射到用户输入的真实上游模型名。
@@ -101,6 +118,7 @@ Codex 配置：
    - 确保 `RunAtLoad` 和 `KeepAlive` 启用。
    - 启动代理。
    - 验证 health endpoint、四类客户端前缀 health endpoint、dashboard、telemetry summary 和 LaunchAgent 状态。
+   - 在执行前展示 launchctl 与证书信任命令预览，避免用户不清楚 App 将进行哪些本机修改。
 
 ## 主状态页
 

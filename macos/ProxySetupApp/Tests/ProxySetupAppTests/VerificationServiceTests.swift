@@ -29,4 +29,16 @@ struct VerificationServiceTests {
         #expect(VerificationSummary(checks: results).failedCount == 1)
         #expect(VerificationSummary(checks: results).isPassing == false)
     }
+
+    @Test
+    func pendingSummaryNamesDesktopCliAppCliChecks() {
+        let summary = VerificationService.pendingSummary(config: .default)
+        let names = summary.checks.map(\.name)
+
+        #expect(names.contains("Claude Desktop health"))
+        #expect(names.contains("Claude CLI health"))
+        #expect(names.contains("Codex App health"))
+        #expect(names.contains("Codex CLI health"))
+        #expect(summary.checks.allSatisfy { $0.status == .notRun })
+    }
 }

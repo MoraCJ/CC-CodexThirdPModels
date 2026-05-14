@@ -30,6 +30,27 @@ struct VerificationSummary: Equatable {
 }
 
 struct VerificationService {
+    static func pendingSummary(config: SetupConfiguration) -> VerificationSummary {
+        let names = [
+            "Proxy health",
+            "Dashboard",
+            "Telemetry summary",
+            "Claude Desktop health",
+            "Claude CLI health",
+            "Codex App health",
+            "Codex CLI health",
+        ]
+        let checks = zip(names, healthURLs(config: config)).map { name, url in
+            VerificationCheck(
+                name: name,
+                url: url,
+                status: .notRun,
+                detail: "待运行 / Not run"
+            )
+        }
+        return VerificationSummary(checks: checks)
+    }
+
     static func healthURLs(config: SetupConfiguration) -> [URL] {
         let base = "https://\(config.listenHost):\(config.listenPort)"
         return [

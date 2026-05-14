@@ -1,6 +1,6 @@
 # Claude Code Desktop 第三方 API 接入 Handoff
 
-更新时间：2026-05-14
+更新时间：2026-05-15
 
 本文记录本次会话在项目 `/Users/chjia/Documents/Codex/2026-05-11/claude-code-app-api` 中完成的工作、当前架构决策、已知问题与后续运行/测试方式。本文不包含真实 API key、token、密码或私钥内容。
 
@@ -369,12 +369,62 @@ cd macos/ProxySetupApp && swift test
 
 最终全量验证命令见本轮最终回复。
 
+### 0.2.15 Task 8-12 复核与 UI 易用性增强
+
+本轮按 CJ 要求继续执行 Task 8、Task 9、Task 10、Task 11、Task 12，并重点改善 UI 易用性、中文/英文并列和“本机部署但不误伤当前配置”的安全边界。
+
+新增/增强：
+
+- `SetupConfiguration` 新增 provider 兼容类型：
+  - `Anthropic 兼容 / Anthropic-compatible`
+  - `OpenAI 兼容 / OpenAI-compatible`
+- `AppState` 新增：
+  - Claude/Codex API Key 输入态。
+  - 配置校验状态。
+  - Keychain 保存状态。
+  - 设置向导 tab 状态。
+  - 准备状态 checklist。
+- `ProviderSettingsView` 改为更完整的设置页：
+  - 用户可输入 Base URL、API Key、Keychain account。
+  - 用户可选择 Anthropic/OpenAI 兼容类型。
+  - “保存 Key / Save Keys” 只写 macOS Keychain，并在保存后清空明文输入框。
+- `ModelMappingView` 增强：
+  - Claude Opus/Sonnet/Haiku 映射更清楚。
+  - Codex profiles 支持新增、删除。
+  - reasoning effort 改为 segmented picker。
+- `StatusDashboardView` 增强：
+  - 展示 Proxy、LaunchAgent、Certificate 三个核心状态。
+  - 展示四类客户端分流路径：Claude Desktop、Claude CLI、Codex App、Codex CLI。
+  - 展示准备状态 checklist。
+- `VerificationResultsView` 增强：
+  - 展示 health、dashboard、telemetry summary、四类客户端 health URL。
+  - 展示 LaunchAgent `bootstrap/kickstart/print` 与证书信任命令预览。
+  - 展示 Claude CLI、Claude Desktop gateway、Codex TOML 配置预览。
+- `LaunchAgentService` 增强：
+  - 除 plist 外，生成 `launchctl bootstrap`、`kickstart`、`print`、`bootout` 命令数组。
+- `CertificateService` 增强：
+  - 生成 login keychain 信任 CA 的 `security add-trusted-cert` 命令数组。
+- `VerificationService` 增强：
+  - 生成带名称的 pending verification summary，明确区分 desktop/cli/app/cli。
+- `macos/ProxySetupApp/README.md` 与设计 spec 已更新为中文说明。
+
+安全确认：
+
+- 本轮自动化执行没有修改真实 `~/.codex/config.toml`。
+- 没有修改真实 `~/.claude/settings.json`。
+- 没有修改 Claude Desktop config。
+- 没有写 `~/Library/LaunchAgents`。
+- 没有写生产 Keychain 项。
+- Keychain 单元测试仍只使用测试专用 `CJLocalProxyTests` service/account。
+
 ### 0.3 Git 状态
 
-- 本地目录已初始化为 git 仓库，分支为 `main`。
-- Remote 已设置为 `https://github.com/MoraCJ/CC-CodexThirdPModels.git`。
-- 当前机器访问 GitHub 443 超时，尚未能读取远端历史或推送。
-- 远端可访问后，应先执行 `git fetch origin` 检查远端历史，再决定提交和推送方式。
+- 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。
+- macOS App 实现 worktree：`/Users/chjia/Coding/CC-CodexThirdPModels/.worktrees/macos-local-proxy-setup-app`。
+- 当前实现分支：`feature/macos-local-proxy-setup-app`。
+- Remote：`git@github.com:MoraCJ/CC-CodexThirdPModels.git`。
+- `origin/main` 当前仍在初始提交 `464d065`；本地 `main` 有任务计划和 `.worktrees/` ignore 两个未推送提交；feature 分支基于本地 `main` 继续开发。
+- 合并或 PR 前应先决定是否同步本地 `main` 的两个基础提交。
 
 ## 0A. 最新补充：Usage Dashboard 与客户端来源区分
 

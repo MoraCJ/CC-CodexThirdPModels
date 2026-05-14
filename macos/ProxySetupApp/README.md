@@ -20,12 +20,17 @@ swift test
 ## 当前能力
 
 - SwiftUI 主窗口和菜单栏入口。
-- Provider、模型映射和验证 URL 的设置界面。
-- Keychain 读写封装。
+- Provider 兼容类型选择：Anthropic-compatible / OpenAI-compatible。
+- Base URL、API Key、Keychain account、Claude 模型映射和 Codex profiles 的设置界面。
+- API Key 输入后可显式保存到 macOS Keychain；保存后界面会清空明文输入框。
+- Dashboard 状态页展示 Proxy、LaunchAgent、证书、本机分流路径和准备状态。
+- 验证页展示 `/health`、`/dashboard`、`/telemetry/summary` 与四类客户端 health URL。
+- 配置预览展示 Claude CLI、Claude Desktop gateway 和 Codex TOML 片段。
+- Keychain 读写封装和日志脱敏工具。
 - 代理文件安装器。
 - Claude/Codex 配置字符串生成。
-- LaunchAgent plist 字符串生成。
-- 证书生成命令规划。
+- LaunchAgent plist 字符串生成，以及 `bootstrap`、`kickstart`、`print`、`bootout` 命令规划。
+- 证书生成与信任命令规划。
 - Verification URL 与状态汇总模型。
 
 ## 安全约束
@@ -35,6 +40,7 @@ swift test
 - LaunchAgent plist 不写真实 API Key。
 - App 日志和代理 telemetry 不记录 prompt、response、Authorization、Cookie 或真实 key。
 - 当前开发阶段不得修改本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、`~/Library/LaunchAgents` 或生产 Keychain 项。
+- 自动化测试不会写生产 Keychain 项；Keychain 单元测试只使用 `CJLocalProxyTests` 测试 service/account。
 
 ## 测试环境说明
 

@@ -2,38 +2,110 @@ import SwiftUI
 
 struct ModelMappingView: View {
     @Binding var config: SetupConfiguration
+    private let reasoningOptions = ["minimal", "low", "medium", "high", "xhigh"]
 
     var body: some View {
-        Form {
-            Section("Claude 模型映射 / Claude Model Mapping") {
-                TextField("Opus 上游模型", text: $config.claudeModels.opus)
-                TextField("Sonnet 上游模型", text: $config.claudeModels.sonnet)
-                TextField("Haiku 上游模型", text: $config.claudeModels.haiku)
-            }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                SetupPanel(
+                    title: "Claude 模型映射 / Claude Model Mapping",
+                    subtitle: "Claude 客户端仍看到标准 Opus、Sonnet、Haiku，代理再映射到上游模型。",
+                    systemImage: "arrow.triangle.branch"
+                ) {
+                    Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+                        modelRow("Opus", text: $config.claudeModels.opus)
+                        modelRow("Sonnet", text: $config.claudeModels.sonnet)
+                        modelRow("Haiku", text: $config.claudeModels.haiku)
+                    }
+                }
 
-            Section("Codex Profiles") {
-                ForEach($config.codexProfiles) { $profile in
-                    Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
-                        GridRow {
-                            Text("Profile")
-                                .foregroundStyle(.secondary)
-                            TextField("Profile", text: $profile.name)
+                SetupPanel(
+                    title: "Codex Profiles / Codex 配置档",
+                    subtitle: "每个 profile 会生成独立模型和 reasoning effort，便于 CLI 选择。",
+                    systemImage: "person.crop.square.stack"
+                ) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach($config.codexProfiles) { $profile in
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack {
+                                    Text(profile.name.isEmpty ? "未命名 Profile" : profile.name)
+                                        .font(.subheadline.weight(.semibold))
+                                    Spacer()
+                                    Button(role: .destructive) {
+                                        removeProfile(profile.id)
+                                    } label: {
+                                        Image(systemName: "trash")
+                                    }
+                                    .buttonStyle(.borderless)
+                                    .help("删除 profile / Delete profile")
+                                    .disabled(config.codexProfiles.count <= 1)
+                                }
+
+                                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+                                    GridRow {
+                                        Text("Profile")
+                                            .foregroundStyle(.secondary)
+                                        TextField("ark-default", text: $profile.name)
+                                            .textFieldStyle(.roundedBorder)
+                                    }
+                                    GridRow {
+                                        Text("Model")
+                                            .foregroundStyle(.secondary)
+                                        TextField("model-name", text: $profile.model)
+                                            .textFieldStyle(.roundedBorder)
+                                    }
+                                    GridRow {
+                                        Text("Reasoning")
+                                            .foregroundStyle(.secondary)
+                                        Picker("Reasoning", selection: $profile.reasoningEffort) {
+                                            ForEach(reasoningOptions, id: \.self) { option in
+                                                Text(option).tag(option)
+                                            }
+                                        }
+                                        .labelsHidden()
+                                        .pickerStyle(.segmented)
+                                    }
+                                }
+                            }
+                            .padding(12)
+                            .background(.thinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                        GridRow {
-                            Text("Model")
-                                .foregroundStyle(.secondary)
-                            TextField("Model", text: $profile.model)
-                        }
-                        GridRow {
-                            Text("Reasoning")
-                                .foregroundStyle(.secondary)
-                            TextField("Reasoning", text: $profile.reasoningEffort)
+
+                        Button {
+                            addProfile()
+                        } label: {
+                            Label("添加 Profile / Add Profile", systemImage: "plus")
                         }
                     }
-                    .padding(.vertical, 6)
                 }
             }
+            .padding(.vertical, 4)
         }
-        .formStyle(.grouped)
+    }
+
+    private func modelRow(_ label: String, text: Binding<String>) -> some View {
+        GridRow {
+            Text(label)
+                .foregroundStyle(.secondary)
+            TextField("\(label) upstream model", text: text)
+                .textFieldStyle(.roundedBorder)
+        }
+    }
+
+    private func addProfile() {
+        config.codexProfiles.append(
+            CodexProfile(
+                id: UUID(),
+                name: "custom-\(config.codexProfiles.count + 1)",
+                model: "",
+                reasoningEffort: "medium"
+            )
+        )
+    }
+
+    private func removeProfile(_ id: UUID) {
+        guard config.codexProfiles.count > 1 else { return }
+        config.codexProfiles.removeAll { $0.id == id }
     }
 }

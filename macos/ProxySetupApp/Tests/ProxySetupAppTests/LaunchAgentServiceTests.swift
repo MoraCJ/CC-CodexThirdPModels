@@ -34,4 +34,28 @@ struct LaunchAgentServiceTests {
 
         #expect(plist.contains("https://example.com/a?x=1&amp;y=2"))
     }
+
+    @Test
+    func buildsLaunchctlControlCommandsWithoutExecutingThem() {
+        let service = LaunchAgentService(label: "com.cj.claude-local-https-proxy")
+        let commands = service.controlCommands(
+            plistURL: URL(fileURLWithPath: "/Users/cj/Library/LaunchAgents/com.cj.proxy.plist"),
+            userID: 501
+        )
+
+        #expect(commands.bootstrap == [
+            "launchctl",
+            "bootstrap",
+            "gui/501",
+            "/Users/cj/Library/LaunchAgents/com.cj.proxy.plist",
+        ])
+        #expect(commands.kickstart == [
+            "launchctl",
+            "kickstart",
+            "-k",
+            "gui/501/com.cj.claude-local-https-proxy",
+        ])
+        #expect(commands.printStatus.last == "gui/501/com.cj.claude-local-https-proxy")
+        #expect(commands.bootout[1] == "bootout")
+    }
 }

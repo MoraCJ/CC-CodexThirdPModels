@@ -10,6 +10,8 @@ struct SetupConfigurationTests {
         #expect(config.claudeCLIBaseURL.absoluteString == "https://127.0.0.1:38443/claude-cli")
         #expect(config.codexAppBaseURL.absoluteString == "https://127.0.0.1:38443/codex-app/v1")
         #expect(config.codexCLIBaseURL.absoluteString == "https://127.0.0.1:38443/codex-cli/v1")
+        #expect(config.claudeProvider.protocolType == .anthropicCompatible)
+        #expect(config.codexProvider.protocolType == .openAICompatible)
     }
 
     @Test
@@ -39,6 +41,26 @@ struct SetupConfigurationTests {
         config.listenPort = 70000
 
         #expect(throws: SetupConfiguration.ValidationError.invalidPort) {
+            try config.validate()
+        }
+    }
+
+    @Test
+    func rejectsEmptyModelNames() {
+        var config = SetupConfiguration.default
+        config.claudeModels.sonnet = " "
+
+        #expect(throws: SetupConfiguration.ValidationError.emptyClaudeModel) {
+            try config.validate()
+        }
+    }
+
+    @Test
+    func rejectsIncompleteCodexProfile() {
+        var config = SetupConfiguration.default
+        config.codexProfiles[0].model = ""
+
+        #expect(throws: SetupConfiguration.ValidationError.emptyCodexProfile) {
             try config.validate()
         }
     }

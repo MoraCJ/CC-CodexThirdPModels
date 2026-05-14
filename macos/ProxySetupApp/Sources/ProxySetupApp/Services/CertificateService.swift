@@ -78,4 +78,17 @@ struct CertificateService {
             ],
         ]
     }
+
+    func trustCommand(certsDirectory: URL, loginKeychainPath: String) -> [String] {
+        [
+            "security",
+            "add-trusted-cert",
+            "-d",
+            "-r",
+            "trustRoot",
+            "-k",
+            loginKeychainPath,
+            "\(certsDirectory.path)/ca.crt",
+        ]
+    }
 }

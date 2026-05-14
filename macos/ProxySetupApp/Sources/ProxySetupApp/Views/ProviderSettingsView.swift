@@ -2,29 +2,122 @@ import SwiftUI
 
 struct ProviderSettingsView: View {
     @Binding var config: SetupConfiguration
+    @Binding var claudeAPIKey: String
+    @Binding var codexAPIKey: String
 
     var body: some View {
-        Form {
-            Section("Claude Provider / Claude 服务商") {
-                Toggle("启用 Claude / Enable Claude", isOn: $config.claudeProvider.isEnabled)
-                TextField("Anthropic-compatible Base URL", text: $config.claudeProvider.baseURL)
-                TextField("Keychain Account", text: $config.claudeProvider.keychainAccount)
-            }
-
-            Section("Codex Provider / Codex 服务商") {
-                Toggle("启用 Codex / Enable Codex", isOn: $config.codexProvider.isEnabled)
-                TextField("OpenAI-compatible Base URL", text: $config.codexProvider.baseURL)
-                TextField("Keychain Account", text: $config.codexProvider.keychainAccount)
-            }
-
-            Section("Local Proxy / 本机代理") {
-                TextField("Listen Host", text: $config.listenHost)
-                Stepper(value: $config.listenPort, in: 1024...65535) {
-                    Text("Listen Port: \(config.listenPort)")
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                SetupPanel(
+                    title: "Claude Code",
+                    subtitle: "Claude Desktop 与 Claude CLI 走独立路径，方便 dashboard 分开统计。",
+                    systemImage: "terminal"
+                ) {
+                    ProviderEditor(
+                        isEnabled: $config.claudeProvider.isEnabled,
+                        protocolType: $config.claudeProvider.protocolType,
+                        baseURL: $config.claudeProvider.baseURL,
+                        keychainAccount: $config.claudeProvider.keychainAccount,
+                        apiKey: $claudeAPIKey,
+                        keyPlaceholder: "Claude provider API Key"
+                    )
                 }
-                TextField("Keychain Service", text: $config.keychainService)
+
+                SetupPanel(
+                    title: "Codex",
+                    subtitle: "Codex App 与 Codex CLI 使用不同 base path，避免用量统计混在一起。",
+                    systemImage: "curlybraces.square"
+                ) {
+                    ProviderEditor(
+                        isEnabled: $config.codexProvider.isEnabled,
+                        protocolType: $config.codexProvider.protocolType,
+                        baseURL: $config.codexProvider.baseURL,
+                        keychainAccount: $config.codexProvider.keychainAccount,
+                        apiKey: $codexAPIKey,
+                        keyPlaceholder: "Codex provider API Key"
+                    )
+                }
+
+                SetupPanel(
+                    title: "本机代理 / Local Proxy",
+                    subtitle: "只监听本机地址；LaunchAgent 会使用 RunAtLoad 和 KeepAlive。",
+                    systemImage: "bolt.horizontal.circle"
+                ) {
+                    Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+                        GridRow {
+                            Text("Host")
+                                .foregroundStyle(.secondary)
+                            TextField("127.0.0.1", text: $config.listenHost)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        GridRow {
+                            Text("Port")
+                                .foregroundStyle(.secondary)
+                            Stepper(value: $config.listenPort, in: 1024...65535) {
+                                Text("\(config.listenPort)")
+                                    .monospacedDigit()
+                            }
+                        }
+                        GridRow {
+                            Text("Keychain")
+                                .foregroundStyle(.secondary)
+                            TextField("CJLocalProxy", text: $config.keychainService)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                    }
+                }
             }
+            .padding(.vertical, 4)
         }
-        .formStyle(.grouped)
+    }
+}
+
+private struct ProviderEditor: View {
+    @Binding var isEnabled: Bool
+    @Binding var protocolType: ProviderProtocol
+    @Binding var baseURL: String
+    @Binding var keychainAccount: String
+    @Binding var apiKey: String
+    let keyPlaceholder: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Toggle("启用 / Enable", isOn: $isEnabled)
+                .toggleStyle(.switch)
+
+            Picker("兼容类型 / Compatibility", selection: $protocolType) {
+                ForEach(ProviderProtocol.allCases) { item in
+                    Text(item.title).tag(item)
+                }
+            }
+            .pickerStyle(.segmented)
+            .disabled(!isEnabled)
+
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+                GridRow {
+                    Text("Base URL")
+                        .foregroundStyle(.secondary)
+                    TextField("https://provider.example.com/api", text: $baseURL)
+                        .textFieldStyle(.roundedBorder)
+                }
+                GridRow {
+                    Text("API Key")
+                        .foregroundStyle(.secondary)
+                    SecureField(keyPlaceholder, text: $apiKey)
+                        .textFieldStyle(.roundedBorder)
+                }
+                GridRow {
+                    Text("Keychain")
+                        .foregroundStyle(.secondary)
+                    TextField("account", text: $keychainAccount)
+                        .textFieldStyle(.roundedBorder)
+                }
+            }
+            .disabled(!isEnabled)
+
+            Text("保存时只写入 macOS Keychain；客户端配置只使用本地占位 token。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 }
