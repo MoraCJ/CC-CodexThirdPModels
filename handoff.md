@@ -29,8 +29,13 @@
 ### 0.2 新增/更新文件
 
 - 中文设计文档：`docs/superpowers/specs/2026-05-14-macos-local-proxy-setup-app-design.md`。
+- 实施任务卡：`docs/superpowers/plans/2026-05-14-macos-local-proxy-setup-app.md`。
 - Git 忽略规则：`.gitignore`，用于忽略证书私钥、日志、telemetry、`.DS_Store` 和构建产物。
 - 项目规则：`AGENTS.md`，补充项目文档默认使用简体中文，以及 macOS App spec 位置。
+
+### 0.2.1 下一步执行建议
+
+任务卡已经拆好。按计划应先执行 Task 1：让 Node 代理从 macOS Keychain 读取真实 provider API Key，再进入 SwiftUI App scaffold。原因是 App 的安全设计依赖“真实 key 只存在 Keychain，客户端配置只放本地非敏感 token”。
 
 ### 0.3 Git 状态
 

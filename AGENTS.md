@@ -19,6 +19,7 @@
 - Telemetry：`claude-local-proxy/logs/telemetry.jsonl`。
 - GitHub 仓库：`https://github.com/MoraCJ/CC-CodexThirdPModels`。
 - macOS 本机设置 App 设计文档：`docs/superpowers/specs/2026-05-14-macos-local-proxy-setup-app-design.md`。
+- macOS 本机设置 App 实施任务卡：`docs/superpowers/plans/2026-05-14-macos-local-proxy-setup-app.md`。
 
 ## 客户端来源区分
 
