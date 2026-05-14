@@ -251,6 +251,10 @@ launchctl print gui/$(id -u)/com.cj.claude-local-https-proxy
 - Keychain wrapper 测试，尽量使用测试专用 service/account namespace。
 - 本地手工验证用的 integration-style 命令。
 
+当前开发机器只安装 CommandLineTools，没有完整 Xcode，也没有 XCTest。SwiftPM tests 使用 Swift Testing（`import Testing`、`@Test`、`#expect`），并在 package test target 中加入 CommandLineTools 的 `Testing.framework` 和 `lib_TestingInterop.dylib` rpath。
+
+开发和测试期间不得修改本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、`~/Library/LaunchAgents` 或生产 Keychain 项。涉及文件写入的测试必须使用临时目录或 fixture；Keychain 测试必须使用测试专用 service/account namespace。
+
 现有 Node 代理测试继续保留：
 
 ```bash

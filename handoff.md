@@ -357,6 +357,18 @@ cd macos/ProxySetupApp && swift test
 - 未写 LaunchAgent。
 - 未写生产 Keychain 项。
 
+### 0.2.14 Task 12 完成记录：集成验证、文档和 handoff
+
+已完成 Task 12 文档收口：
+
+- 新增 `macos/ProxySetupApp/README.md`。
+- 更新 `docs/superpowers/specs/2026-05-14-macos-local-proxy-setup-app-design.md`：
+  - 记录 Swift Testing / CommandLineTools 测试环境约束。
+  - 记录开发期间不得修改本机真实 Codex/Claude 配置、LaunchAgent 或生产 Keychain 项。
+- 本 handoff 持续记录每个任务完成状态。
+
+最终全量验证命令见本轮最终回复。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
