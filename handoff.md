@@ -243,6 +243,38 @@ cd macos/ProxySetupApp && swift test
 - 未写 `~/.claude/settings.json`。
 - 未写 Claude Desktop config。
 
+### 0.2.10 Task 8 完成记录：LaunchAgent plist 生成
+
+已完成 Task 8：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/LaunchAgentService.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/LaunchAgentServiceTests.swift`。
+- 生成的 plist 包含：
+  - `RunAtLoad = true`
+  - `KeepAlive = true`
+  - `ProgramArguments`
+  - `WorkingDirectory`
+  - stdout/stderr log path
+  - proxy 环境变量
+  - Keychain service/account 环境变量
+- plist 不包含真实 API Key、`Bearer` 或 `sk-`。
+- plist 字符串值做 XML escape。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter LaunchAgentServiceTests
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+```
+
+安全确认：
+
+- 只生成 plist 字符串。
+- 未写 `~/Library/LaunchAgents`。
+- 未执行 `launchctl`。
+- 未修改本机 Codex/Claude 配置。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
