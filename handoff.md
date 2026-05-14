@@ -100,6 +100,30 @@ cd macos/ProxySetupApp && swift test
 - CommandLineTools 没有 XCTest；Swift 测试改用 Swift Testing。
 - 为了让 `swift test` 在当前 CLT 下找到 `Testing.framework` 和 `lib_TestingInterop.dylib`，`Package.swift` 的 test target 显式加入了 CLT Frameworks 和 usr/lib rpath。
 
+### 0.2.5 Task 3 完成记录：配置模型与校验
+
+已完成 Task 3，新增纯内存配置模型，不读写本机真实配置文件：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Models/SetupConfiguration.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/SetupConfigurationTests.swift`。
+- 配置模型覆盖：
+  - Claude provider enable/base URL/keychain account。
+  - Codex provider enable/base URL/keychain account。
+  - Claude Opus/Sonnet/Haiku 模型映射。
+  - Codex profiles。
+  - 四类固定客户端前缀 Base URL。
+- 校验覆盖：
+  - provider Base URL 必须是 HTTPS。
+  - 至少启用 Claude 或 Codex 其中一个 provider。
+  - listen port 必须在 `1...65535`。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter SetupConfigurationTests
+cd macos/ProxySetupApp && swift build
+```
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。
