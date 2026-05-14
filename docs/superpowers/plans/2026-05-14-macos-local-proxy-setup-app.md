@@ -6,7 +6,9 @@
 
 **Architecture:** SwiftUI App 负责编排安装、配置、Keychain、LaunchAgent、证书、验证和状态展示；现有 Node.js 代理继续负责 HTTPS 代理、模型映射、Codex bridge 和 telemetry。真实 provider API Key 存在 macOS Keychain，Node 代理启动或请求时从 Keychain 读取，Claude/Codex 客户端配置只写本地非敏感 token。
 
-**Tech Stack:** SwiftUI、Swift Package Manager、XCTest、Foundation、Security.framework、LaunchAgent plist、Node.js、macOS `security` CLI、OpenSSL、现有 `claude-local-proxy`。
+**Tech Stack:** SwiftUI、Swift Package Manager、Swift Testing、Foundation、Security.framework、LaunchAgent plist、Node.js、macOS `security` CLI、OpenSSL、现有 `claude-local-proxy`。
+
+**Implementation Note:** 当前开发机器只安装了 CommandLineTools，没有完整 Xcode，也没有 XCTest。所有 Swift 测试统一使用 Swift Testing（`import Testing`、`@Test`、`#expect`），不要再新增 XCTest 依赖。涉及配置写入的任务必须使用临时目录、fixture 或测试专用 Keychain service/account，不能修改本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、LaunchAgent 或生产 Keychain 项。
 
 ---
 

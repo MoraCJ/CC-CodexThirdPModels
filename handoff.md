@@ -63,6 +63,43 @@ node --check claude-local-proxy/keychain.js
 
 - 尚未在真实 macOS Keychain 中写入 provider key 并做端到端请求验证；这会在 SwiftUI App 的 KeychainService 和安装流程完成后验证。
 
+### 0.2.3 本机配置保护约束
+
+CJ 明确要求：开发期间不能动本机正在运行的 Codex 配置。后续实现 macOS 设置 App 时必须遵守：
+
+- 不修改真实 `~/.codex/config.toml`。
+- 不修改真实 `~/.claude/settings.json`。
+- 不修改真实 Claude Desktop config。
+- 不写真实 `~/Library/LaunchAgents`。
+- 不写真实 Keychain 生产项。
+- 配置写入测试必须使用临时目录、fixture 或测试专用 Keychain service/account。
+- 真正执行本机安装或写入生产配置前，必须由 CJ 单独明确确认。
+
+### 0.2.4 Task 2 完成记录：SwiftUI App scaffold
+
+已完成 Task 2，并使用 `Build macOS Apps` 插件建议的 SwiftPM/macOS GUI App 工作流：
+
+- 新增 `macos/ProxySetupApp/Package.swift`。
+- 新增 SwiftUI App 入口、`AppState`、`RootView`、`StatusDashboardView`。
+- 新增菜单栏入口 `MenuBarExtra`。
+- 新增 `script/build_and_run.sh`，用于构建 `.app` bundle 并启动/验证。
+- 新增 `.codex/environments/environment.toml`，让 Codex App 可以使用项目 Run action。
+- `script/build_and_run.sh --verify` 只启动当前 scaffold App，不写 Claude/Codex 配置。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+./script/build_and_run.sh --verify
+```
+
+环境备注：
+
+- 当前机器 `xcode-select` 指向 CommandLineTools，而不是完整 Xcode。
+- CommandLineTools 没有 XCTest；Swift 测试改用 Swift Testing。
+- 为了让 `swift test` 在当前 CLT 下找到 `Testing.framework` 和 `lib_TestingInterop.dylib`，`Package.swift` 的 test target 显式加入了 CLT Frameworks 和 usr/lib rpath。
+
 ### 0.3 Git 状态
 
 - 本地目录已初始化为 git 仓库，分支为 `main`。

@@ -44,6 +44,7 @@
 ## 操作规则
 
 - 修改远端前先备份，备份文件名包含时间戳。
+- 开发 macOS 设置 App 时，默认不得修改本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、`~/Library/LaunchAgents` 或真实 Keychain 生产项。所有配置写入先使用临时目录、fixture 或测试专用 Keychain service；真正安装/写入本机配置必须得到 CJ 明确确认。
 - 修改代理后至少运行：
   - `node --check claude-local-proxy/server.js`
   - `node --check claude-local-proxy/telemetry.js`

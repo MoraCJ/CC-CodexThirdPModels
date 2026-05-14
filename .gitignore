@@ -15,6 +15,7 @@ node_modules/
 .build/
 DerivedData/
 .worktrees/
+dist/
 
 # App-local generated files
 macos/ProxySetupApp/build/
