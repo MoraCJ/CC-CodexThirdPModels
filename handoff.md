@@ -417,14 +417,62 @@ cd macos/ProxySetupApp && swift test
 - 没有写生产 Keychain 项。
 - Keychain 单元测试仍只使用测试专用 `CJLocalProxyTests` service/account。
 
+### 0.2.16 Task 13 完成记录：本机安装编排与安全预览
+
+本轮继续执行下一个任务，完成 Task 13：把前面分散的安装、证书、LaunchAgent 和验证服务串成可审计的本机安装编排层，但仍不做真实一键安装。
+
+新增/更新文件：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/LocalInstallationService.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/LocalInstallationServiceTests.swift`。
+- 更新 `macos/ProxySetupApp/Sources/ProxySetupApp/Views/VerificationResultsView.swift`。
+- 更新 `docs/superpowers/plans/2026-05-14-macos-local-proxy-setup-app.md`，追加 Task 13。
+- 更新 `docs/superpowers/specs/2026-05-14-macos-local-proxy-setup-app-design.md`。
+- 更新 `macos/ProxySetupApp/README.md`。
+- 本 handoff 持续记录任务状态。
+
+当前能力：
+
+- `LocalInstallationService.buildPlan` 可生成本机安装计划，包含：
+  - 配置校验。
+  - 复制代理文件。
+  - 写入 `config/proxy.env`。
+  - 准备 `openssl-server.cnf`。
+  - 写入 LaunchAgent plist。
+  - 准备 `launchctl bootstrap/kickstart/print` 命令数组。
+  - 准备证书信任命令数组。
+  - 准备 health、dashboard、telemetry 和四类客户端 health 验证端点。
+- `LocalInstallationService.prepareLocalFiles` 支持注入临时 `InstallationEnvironment`，只在传入的 `installRoot` 与 `launchAgentDirectory` 下写文件。
+- 设置向导验证页展示安装计划与安全边界。
+- 配置无效时，验证页展示错误原因，不再静默显示空列表。
+
+安全确认：
+
+- 未修改本机真实 `~/.codex/config.toml`。
+- 未修改真实 `~/.claude/settings.json`。
+- 未修改 Claude Desktop config。
+- 未写真实 `~/Library/LaunchAgents`。
+- 未写生产 Keychain 项。
+- 未执行真实 `launchctl`、`security add-trusted-cert` 或 `openssl`。
+- 自动化测试只写临时目录。
+- 生成的 `proxy.env` 与 plist 不包含真实 provider API Key、`Bearer ` 或 `sk-`。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter LocalInstallationServiceTests
+```
+
+最终全量验证命令见本轮最终回复。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。
-- macOS App 实现 worktree：`/Users/chjia/Coding/CC-CodexThirdPModels/.worktrees/macos-local-proxy-setup-app`。
-- 当前实现分支：`feature/macos-local-proxy-setup-app`。
+- 当前 Task 13 worktree：`/Users/chjia/Coding/CC-CodexThirdPModels/.worktrees/macos-install-plan`。
+- 当前实现分支：`feature/macos-install-plan`。
 - Remote：`git@github.com:MoraCJ/CC-CodexThirdPModels.git`。
-- `origin/main` 当前仍在初始提交 `464d065`；本地 `main` 有任务计划和 `.worktrees/` ignore 两个未推送提交；feature 分支基于本地 `main` 继续开发。
-- 合并或 PR 前应先决定是否同步本地 `main` 的两个基础提交。
+- `origin/main` 当前仍在初始提交 `464d065`；本地 `main` 已包含 macOS App Task 1-12，尚未推送。
+- Task 13 完成后应合并回本地 `main`，再决定是否推送远端。
 
 ## 0A. 最新补充：Usage Dashboard 与客户端来源区分
 

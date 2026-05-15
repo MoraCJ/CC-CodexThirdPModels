@@ -32,6 +32,8 @@ swift test
 - LaunchAgent plist 字符串生成，以及 `bootstrap`、`kickstart`、`print`、`bootout` 命令规划。
 - 证书生成与信任命令规划。
 - Verification URL 与状态汇总模型。
+- 本机安装计划生成：复制代理文件、写 runtime config、准备证书配置、写 LaunchAgent plist、准备验证端点。
+- 安全文件准备：可在注入的临时目录中准备代理文件、`proxy.env`、`openssl-server.cnf` 和 LaunchAgent plist，用于测试和审查。
 
 ## 安全约束
 
@@ -41,6 +43,8 @@ swift test
 - App 日志和代理 telemetry 不记录 prompt、response、Authorization、Cookie 或真实 key。
 - 当前开发阶段不得修改本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、`~/Library/LaunchAgents` 或生产 Keychain 项。
 - 自动化测试不会写生产 Keychain 项；Keychain 单元测试只使用 `CJLocalProxyTests` 测试 service/account。
+- 安装编排测试必须传入临时 `InstallationEnvironment`，不得使用默认真实用户目录执行写入。
+- 当前 App 只展示安装计划和命令预览，不自动执行 `launchctl`、`security add-trusted-cert` 或 `openssl`。
 
 ## 测试环境说明
 

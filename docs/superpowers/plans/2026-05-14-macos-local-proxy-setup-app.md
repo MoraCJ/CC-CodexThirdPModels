@@ -1640,6 +1640,71 @@ git add handoff.md AGENTS.md docs/superpowers/specs/2026-05-14-macos-local-proxy
 git commit -m "docs: document macos setup app"
 ```
 
+### Task 13: 本机安装编排与安全预览
+
+**Files:**
+- Create: `macos/ProxySetupApp/Sources/ProxySetupApp/Services/LocalInstallationService.swift`
+- Create: `macos/ProxySetupApp/Tests/ProxySetupAppTests/LocalInstallationServiceTests.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Views/VerificationResultsView.swift`
+- Modify: `handoff.md`
+- Modify: `macos/ProxySetupApp/README.md`
+- Modify: `docs/superpowers/specs/2026-05-14-macos-local-proxy-setup-app-design.md`
+
+- [ ] **Step 1: 写安装编排测试**
+
+覆盖：
+
+- `buildPlan` 生成本机安装步骤、LaunchAgent 命令预览、证书信任命令预览、verification summary。
+- `buildPlan` 拒绝非法配置。
+- `prepareLocalFiles` 只写入注入的临时 `installRoot` 和 `launchAgentDirectory`。
+- 生成代理文件、`config/proxy.env`、`certs/openssl-server.cnf` 和 `<label>.plist`。
+- 生成内容不包含真实 API Key、`Bearer ` 或 `sk-`。
+
+- [ ] **Step 2: 实现 `LocalInstallationService`**
+
+实现：
+
+- `InstallationEnvironment`：安装目录、LaunchAgent 目录、Node path、user id、login keychain path。
+- `InstallationPlanItem`：UI 可展示的安装步骤。
+- `LocalInstallationResult`：生成文件路径、launchctl 命令数组、证书信任命令数组和 pending verification summary。
+- `buildPlan(config:environment:)`：只生成计划，不写文件。
+- `prepareLocalFiles(config:environment:proxySourceDirectory:)`：只写入注入目录，不执行 `launchctl`、`security` 或 `openssl`。
+
+- [ ] **Step 3: 接入 UI 预览**
+
+在 `VerificationResultsView` 显示：
+
+- 安装计划。
+- 安全边界说明。
+- 配置无效时展示错误，不静默吞掉错误。
+
+- [ ] **Step 4: 更新文档和 handoff**
+
+记录：
+
+- 当前只实现安装编排和安全预览。
+- 自动化测试只写临时目录。
+- 真实安装执行路径仍需 CJ 明确确认后再接入。
+
+- [ ] **Step 5: 验证**
+
+Run:
+
+```bash
+cd macos/ProxySetupApp
+swift test --filter LocalInstallationServiceTests
+swift test
+swift build
+cd ../..
+node --test claude-local-proxy/tests/telemetry.test.js claude-local-proxy/tests/keychain.test.js
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+./script/build_and_run.sh --verify
+```
+
+Expected: all tests/builds pass. App launch verification must not write real Claude/Codex config, LaunchAgent, or production Keychain.
+
 ## 自检清单
 
 - Spec 覆盖：
@@ -1653,10 +1718,12 @@ git commit -m "docs: document macos setup app"
   - Dashboard 与 telemetry 验证：Task 10 覆盖。
   - 菜单栏与主状态页：Task 2、11 覆盖。
   - 文档与 handoff：Task 12 覆盖。
+  - 本机安装编排与安全预览：Task 13 覆盖。
 - 范围边界：
   - 不做远程 SSH。
   - 不做签名 `.pkg`。
   - 不自动安装 Node.js、Claude Code 或 Codex。
+  - Task 13 不执行真实 `launchctl`、`security add-trusted-cert` 或 `openssl`。
   - 不记录 prompt、response、Authorization、Cookie 或真实 API Key。
 - 执行顺序：
   - Task 1 必须先执行，因为 App 的安全设计依赖代理能从 Keychain 读取真实上游 key。

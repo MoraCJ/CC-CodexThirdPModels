@@ -7,6 +7,11 @@ struct VerificationResultsView: View {
     private var summary: VerificationSummary {
         VerificationService.pendingSummary(config: config)
     }
+    private var installationPlanResult: Result<[InstallationPlanItem], Error> {
+        Result {
+            try LocalInstallationService().buildPlan(config: config)
+        }
+    }
 
     var body: some View {
         ScrollView {
@@ -65,6 +70,54 @@ struct VerificationResultsView: View {
                 }
 
                 SetupPanel(
+                    title: "安装计划 / Installation Plan",
+                    subtitle: "按顺序展示本机部署会进行的文件写入、LaunchAgent 和验证步骤。",
+                    systemImage: "checklist"
+                ) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        switch installationPlanResult {
+                        case .success(let items):
+                            ForEach(items) { item in
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(item.title)
+                                        .font(.subheadline.weight(.medium))
+                                    Text(item.detail)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                        .textSelection(.enabled)
+                                }
+                                .padding(.vertical, 2)
+                            }
+                        case .failure(let error):
+                            Label(
+                                "安装计划暂不可用 / Installation plan unavailable",
+                                systemImage: "exclamationmark.triangle"
+                            )
+                            .foregroundStyle(.orange)
+                            Text(error.localizedDescription)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .textSelection(.enabled)
+                        }
+                    }
+                }
+
+                SetupPanel(
+                    title: "安全边界 / Safety Boundary",
+                    subtitle: "当前页面只展示计划和预览；真实安装必须由用户显式触发。",
+                    systemImage: "hand.raised"
+                ) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        safetyRow("不自动修改 ~/.codex/config.toml")
+                        safetyRow("不自动修改 ~/.claude/settings.json")
+                        safetyRow("不自动写真实 ~/Library/LaunchAgents")
+                        safetyRow("不执行 launchctl、security 或 openssl")
+                        safetyRow("真实 API Key 只通过保存 Key 按钮进入 Keychain")
+                    }
+                }
+
+                SetupPanel(
                     title: "客户端路径 / Client Paths",
                     subtitle: "固定前缀让 dashboard 能分别统计 desktop、cli、app 用量。",
                     systemImage: "point.3.connected.trianglepath.dotted"
@@ -94,6 +147,16 @@ struct VerificationResultsView: View {
                 }
             }
             .padding(.vertical, 4)
+        }
+    }
+
+    private func safetyRow(_ text: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.shield")
+                .foregroundStyle(.green)
+            Text(text)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 

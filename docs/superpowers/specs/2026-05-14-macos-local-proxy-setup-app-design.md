@@ -38,8 +38,11 @@ App 使用 SwiftUI 开发，包含三个主要界面：
 - 验证页展示 Claude/Codex 配置预览，预览中只包含 `CJ_LOCAL_PROXY_TOKEN`，不包含真实 provider API Key。
 - LaunchAgent service 生成 `RunAtLoad` / `KeepAlive` plist，并生成 launchctl 控制命令数组。
 - Certificate service 生成 OpenSSL 证书命令和 login keychain 信任命令数组。
+- LocalInstallationService 生成本机安装计划，并可在注入的临时目录中准备代理文件、运行配置、证书配置和 LaunchAgent plist。
+- 设置向导验证页展示安装计划与安全边界，配置无效时展示错误原因。
 
 当前自动化验证仍不会写真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、`~/Library/LaunchAgents` 或生产 Keychain 项。真实安装执行路径应在 App UI 中由用户显式点击触发，并保留备份与回滚。
+Task 13 只实现安装编排、命令预览和临时目录文件准备，不执行真实 `launchctl`、`security add-trusted-cert` 或 `openssl`。
 
 ## 支持的配置
 
