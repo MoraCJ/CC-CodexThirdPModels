@@ -62,7 +62,13 @@ struct ProxyInstaller {
     }
 
     func writeRuntimeConfig(_ config: SetupConfiguration) throws {
-        let runtime = [
+        let runtime = renderRuntimeConfig(config)
+        let configURL = installRoot.appendingPathComponent("config/proxy.env")
+        try runtime.write(to: configURL, atomically: true, encoding: .utf8)
+    }
+
+    func renderRuntimeConfig(_ config: SetupConfiguration) -> String {
+        [
             "LISTEN_HOST=\(config.listenHost)",
             "LISTEN_PORT=\(config.listenPort)",
             "UPSTREAM_BASE_URL=\(config.claudeProvider.baseURL)",
@@ -77,9 +83,6 @@ struct ProxyInstaller {
             "TLS_KEY_FILE=\(proxyDirectory.path)/certs/server.key",
             "TELEMETRY_FILE=\(proxyDirectory.path)/logs/telemetry.jsonl",
         ].joined(separator: "\n") + "\n"
-
-        let configURL = installRoot.appendingPathComponent("config/proxy.env")
-        try runtime.write(to: configURL, atomically: true, encoding: .utf8)
     }
 
     enum InstallerError: Error, Equatable {

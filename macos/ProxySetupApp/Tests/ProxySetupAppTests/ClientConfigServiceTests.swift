@@ -54,4 +54,30 @@ struct ClientConfigServiceTests {
         let toml = ClientConfigService().renderCodexConfig(config: config)
         #expect(toml.contains(#"model = "model\"with\\chars""#))
     }
+
+    @Test
+    func managedClientConfigChangesUseInjectedPathsAndLocalToken() throws {
+        let environment = ClientConfigEnvironment(
+            claudeSettingsURL: URL(fileURLWithPath: "/tmp/home/.claude/settings.json"),
+            claudeDesktopGatewayURL: URL(fileURLWithPath: "/tmp/home/Library/Application Support/Claude-3p/config.json"),
+            codexConfigURL: URL(fileURLWithPath: "/tmp/home/.codex/config.toml")
+        )
+
+        let changes = try ClientConfigService().managedClientConfigChanges(
+            config: .default,
+            environment: environment
+        )
+        let joined = changes.map(\.proposedContents).joined(separator: "\n")
+
+        #expect(changes.map(\.title) == [
+            "Claude CLI settings",
+            "Claude Desktop gateway config",
+            "Codex config",
+        ])
+        #expect(changes[0].targetURL.path == "/tmp/home/.claude/settings.json")
+        #expect(changes[2].targetURL.path == "/tmp/home/.codex/config.toml")
+        #expect(joined.contains("CJ_LOCAL_PROXY_TOKEN"))
+        #expect(!joined.contains("Bearer "))
+        #expect(!joined.contains("sk-"))
+    }
 }

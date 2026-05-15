@@ -18,4 +18,19 @@ struct SmokeTests {
         #expect(state.isConfigurationValid)
         #expect(state.validationMessage.contains("配置可用"))
     }
+
+    @Test
+    @MainActor
+    func appStateDoesNotAllowKeychainSaveWithoutConfirmation() {
+        let state = AppState()
+        state.claudeAPIKey = "secret"
+
+        #expect(!state.canSaveProviderKeys)
+
+        state.keychainWriteConfirmation.reviewedAccounts = true
+        state.keychainWriteConfirmation.understandsKeychainWrite = true
+        state.keychainWriteConfirmation.typedPhrase = "KEYCHAIN"
+
+        #expect(state.canSaveProviderKeys)
+    }
 }

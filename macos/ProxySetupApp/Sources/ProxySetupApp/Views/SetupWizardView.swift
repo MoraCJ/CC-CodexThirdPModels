@@ -61,28 +61,49 @@ struct SetupWizardView: View {
     }
 
     private var actionBar: some View {
-        HStack(spacing: 12) {
-            Button {
-                appState.validateConfiguration()
-            } label: {
-                Label("检查配置 / Check", systemImage: "checkmark.circle")
+        VStack(alignment: .leading, spacing: 10) {
+            if appState.hasPendingProviderKey {
+                keychainConfirmationBar
             }
 
-            Button {
-                appState.saveProviderKeysToKeychain()
-            } label: {
-                Label("保存 Key / Save Keys", systemImage: "key.fill")
+            HStack(spacing: 12) {
+                Button {
+                    appState.validateConfiguration()
+                } label: {
+                    Label("检查配置 / Check", systemImage: "checkmark.circle")
+                }
+
+                Button {
+                    appState.saveProviderKeysToKeychain()
+                } label: {
+                    Label("保存 Key / Save Keys", systemImage: "key.fill")
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!appState.canSaveProviderKeys)
+
+                Text(appState.validationMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+
+                Spacer()
             }
-            .buttonStyle(.borderedProminent)
-
-            Text(appState.validationMessage)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-
-            Spacer()
         }
         .padding(24)
         .background(.bar)
+    }
+
+    private var keychainConfirmationBar: some View {
+        HStack(spacing: 12) {
+            Toggle("已核对账号 / Accounts reviewed", isOn: $appState.keychainWriteConfirmation.reviewedAccounts)
+                .toggleStyle(.checkbox)
+            Toggle("确认写入 Keychain / Confirm Keychain write", isOn: $appState.keychainWriteConfirmation.understandsKeychainWrite)
+                .toggleStyle(.checkbox)
+            TextField("输入 KEYCHAIN", text: $appState.keychainWriteConfirmation.typedPhrase)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 150)
+            Spacer()
+        }
+        .font(.caption)
     }
 }

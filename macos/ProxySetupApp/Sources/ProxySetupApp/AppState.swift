@@ -11,6 +11,7 @@ final class AppState: ObservableObject {
     @Published var codexAPIKey: String = ""
     @Published var validationMessage: String = "尚未验证 / Not validated"
     @Published var keychainStatusMessage: String = "尚未保存 / Not saved"
+    @Published var keychainWriteConfirmation = KeychainWriteConfirmation()
 
     enum Section: String, CaseIterable, Identifiable, Hashable {
         case status
@@ -86,8 +87,8 @@ final class AppState: ObservableObject {
             ),
             ReadinessItem(
                 title: "API Key",
-                detail: hasAnyPendingKey ? "已输入待保存 / Entered, ready to save" : keychainStatusMessage,
-                isReady: hasAnyPendingKey || keychainStatusMessage.contains("已保存")
+                detail: hasPendingProviderKey ? "已输入待保存 / Entered, ready to save" : keychainStatusMessage,
+                isReady: hasPendingProviderKey || keychainStatusMessage.contains("已保存")
             ),
             ReadinessItem(
                 title: "Local Proxy",
@@ -112,6 +113,11 @@ final class AppState: ObservableObject {
     }
 
     func saveProviderKeysToKeychain() {
+        guard canSaveProviderKeys else {
+            keychainStatusMessage = "需要确认后才能写入 Keychain / Confirm before saving"
+            return
+        }
+
         do {
             try setupConfiguration.validate()
             let keychain = KeychainService(serviceName: setupConfiguration.keychainService)
@@ -135,13 +141,18 @@ final class AppState: ObservableObject {
             }
 
             keychainStatusMessage = "已保存到 Keychain / Saved: \(savedAccounts.joined(separator: ", "))"
+            keychainWriteConfirmation = KeychainWriteConfirmation()
         } catch {
             keychainStatusMessage = "保存失败 / \(error.localizedDescription)"
         }
     }
 
-    private var hasAnyPendingKey: Bool {
+    var hasPendingProviderKey: Bool {
         !claudeAPIKey.isEmpty || !codexAPIKey.isEmpty
+    }
+
+    var canSaveProviderKeys: Bool {
+        hasPendingProviderKey && keychainWriteConfirmation.canSave
     }
 }
 

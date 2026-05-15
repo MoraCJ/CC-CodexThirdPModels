@@ -1705,6 +1705,98 @@ node --check claude-local-proxy/keychain.js
 
 Expected: all tests/builds pass. App launch verification must not write real Claude/Codex config, LaunchAgent, or production Keychain.
 
+### Task 14: 安装确认、备份、回滚与 dry-run diff
+
+**Files:**
+- Create: `macos/ProxySetupApp/Sources/ProxySetupApp/Services/InstallationSafetyService.swift`
+- Create: `macos/ProxySetupApp/Tests/ProxySetupAppTests/InstallationSafetyServiceTests.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Services/LocalInstallationService.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Services/ClientConfigService.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Services/ProxyInstaller.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/AppState.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Views/SetupWizardView.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Views/VerificationResultsView.swift`
+- Modify: `macos/ProxySetupApp/Tests/ProxySetupAppTests/SmokeTests.swift`
+- Modify: `handoff.md`
+- Modify: `macos/ProxySetupApp/README.md`
+- Modify: `docs/superpowers/specs/2026-05-14-macos-local-proxy-setup-app-design.md`
+
+- [x] **Step 1: 写 safety tests**
+
+覆盖：
+
+- `dryRun` 对 managed files 返回 `create`、`update`、`unchanged`，且不写目标文件。
+- dry-run preview 必须脱敏 `Bearer ...` 与 `sk-...` 形态的密钥。
+- `createBackups` 只备份已存在文件，记录 manifest，不把 proposed contents 写入 manifest。
+- `rollback` 只按 manifest 恢复已存在文件、删除原本不存在但被安装创建的文件。
+- 缺 backup 时回滚失败，不静默跳过。
+- `rollback` 必须限制在显式传入的 allowed target roots 内。
+- `InstallationConfirmation` 必须满足所有确认项并输入 `INSTALL` 才允许继续。
+- `KeychainWriteConfirmation` 必须确认账号、确认写入 Keychain 并输入 `KEYCHAIN` 才允许保存 key。
+
+- [x] **Step 2: 实现 `InstallationSafetyService`**
+
+实现：
+
+- `ManagedFileChange`：title、targetURL、proposedContents。
+- `DryRunFileDiff`：change、kind、preview。
+- `BackupManifest` / `BackupEntry`。
+- `InstallationConfirmation` 与确认要求。
+- `KeychainWriteConfirmation`。
+- `dryRun(changes:)`、`createBackups(for:backupDirectory:timestamp:)`、`rollback(manifest:allowedTargetRoots:)`。
+
+- [x] **Step 3: 让服务生成 managed changes**
+
+实现：
+
+- `ProxyInstaller.renderRuntimeConfig`，供写入和 dry-run 共用。
+- `LocalInstallationService.managedFileChanges`：生成 proxy runtime、OpenSSL config、LaunchAgent plist 三类 changes。
+- `ClientConfigEnvironment` 与 `ClientConfigService.managedClientConfigChanges`：用注入路径生成 Claude CLI、Claude Desktop gateway、Codex config 三类 changes。
+
+- [x] **Step 4: 接入 UI 预览**
+
+在 `VerificationResultsView` 显示：
+
+- dry-run diff。
+- create/update/unchanged 状态。
+- execution gate 确认要求。
+- 明确当前页面只读，不写入、不备份、不执行系统命令。
+
+在 `SetupWizardView` / `AppState` 中：
+
+- “保存 Key / Save Keys” 需要用户勾选账号核对、确认 Keychain 写入，并输入 `KEYCHAIN`。
+- 未满足确认条件时按钮禁用；即使直接调用状态方法也会被 guard 拦截，不写生产 Keychain。
+
+- [x] **Step 5: 更新文档和 handoff**
+
+记录：
+
+- 当前已经有 dry-run、backup manifest、rollback 和 confirmation gate。
+- dry-run preview 会做密钥脱敏。
+- rollback 需要显式 allowed target roots。
+- 保存 provider key 需要 `KEYCHAIN` 确认门禁。
+- 自动化测试只使用临时目录。
+- 真实安装按钮仍需后续任务接入显式确认、备份和回滚流程。
+
+- [x] **Step 6: 验证**
+
+Run:
+
+```bash
+cd macos/ProxySetupApp
+swift test --filter InstallationSafetyServiceTests
+swift test
+swift build
+cd ../..
+node --test claude-local-proxy/tests/telemetry.test.js claude-local-proxy/tests/keychain.test.js
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+./script/build_and_run.sh --verify
+```
+
+Expected: all tests/builds pass. No command should modify real Claude/Codex config, real LaunchAgents, production Keychain, or execute real system install commands.
+
 ## 自检清单
 
 - Spec 覆盖：
@@ -1719,11 +1811,13 @@ Expected: all tests/builds pass. App launch verification must not write real Cla
   - 菜单栏与主状态页：Task 2、11 覆盖。
   - 文档与 handoff：Task 12 覆盖。
   - 本机安装编排与安全预览：Task 13 覆盖。
+  - dry-run、备份、回滚、确认门禁：Task 14 覆盖。
 - 范围边界：
   - 不做远程 SSH。
   - 不做签名 `.pkg`。
   - 不自动安装 Node.js、Claude Code 或 Codex。
   - Task 13 不执行真实 `launchctl`、`security add-trusted-cert` 或 `openssl`。
+  - Task 14 不写真实用户配置；只做临时目录测试与 UI 只读预览。
   - 不记录 prompt、response、Authorization、Cookie 或真实 API Key。
 - 执行顺序：
   - Task 1 必须先执行，因为 App 的安全设计依赖代理能从 Keychain 读取真实上游 key。

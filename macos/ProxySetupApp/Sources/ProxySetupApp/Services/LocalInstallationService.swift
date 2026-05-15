@@ -164,4 +164,39 @@ struct LocalInstallationService {
             verificationSummary: VerificationService.pendingSummary(config: config)
         )
     }
+
+    func managedFileChanges(
+        config: SetupConfiguration,
+        environment: InstallationEnvironment = .defaultEnvironment()
+    ) throws -> [ManagedFileChange] {
+        try config.validate()
+
+        let installer = ProxyInstaller(installRoot: environment.installRoot)
+        let launchAgentURL = environment.launchAgentDirectory
+            .appendingPathComponent("\(label).plist")
+        let plist = LaunchAgentService(label: label).renderPlist(
+            nodePath: environment.nodePath,
+            proxyDirectory: installer.proxyDirectory,
+            config: config
+        )
+
+        return [
+            ManagedFileChange(
+                title: "Proxy runtime config",
+                targetURL: environment.installRoot.appendingPathComponent("config/proxy.env"),
+                proposedContents: installer.renderRuntimeConfig(config)
+            ),
+            ManagedFileChange(
+                title: "OpenSSL server config",
+                targetURL: installer.proxyDirectory
+                    .appendingPathComponent("certs/openssl-server.cnf"),
+                proposedContents: CertificateService.renderOpenSSLConfig()
+            ),
+            ManagedFileChange(
+                title: "LaunchAgent plist",
+                targetURL: launchAgentURL,
+                proposedContents: plist
+            ),
+        ]
+    }
 }

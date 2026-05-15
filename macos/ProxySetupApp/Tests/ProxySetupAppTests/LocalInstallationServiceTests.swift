@@ -100,4 +100,34 @@ struct LocalInstallationServiceTests {
         #expect(!runtime.contains("Bearer "))
         #expect(!plist.contains("sk-"))
     }
+
+    @Test
+    func managedFileChangesDescribeRuntimeCertificateAndLaunchAgent() throws {
+        let environment = InstallationEnvironment(
+            installRoot: URL(fileURLWithPath: "/tmp/CJLocalProxy"),
+            launchAgentDirectory: URL(fileURLWithPath: "/tmp/LaunchAgents"),
+            nodePath: "/opt/homebrew/bin/node",
+            userID: 501,
+            loginKeychainPath: "/Users/cj/Library/Keychains/login.keychain-db"
+        )
+
+        let changes = try LocalInstallationService(
+            label: "com.cj.claude-local-https-proxy"
+        ).managedFileChanges(config: .default, environment: environment)
+        let titles = changes.map(\.title)
+        let joinedContents = changes.map(\.proposedContents).joined(separator: "\n")
+
+        #expect(titles == [
+            "Proxy runtime config",
+            "OpenSSL server config",
+            "LaunchAgent plist",
+        ])
+        #expect(changes[0].targetURL.path == "/tmp/CJLocalProxy/config/proxy.env")
+        #expect(changes[1].targetURL.path == "/tmp/CJLocalProxy/claude-local-proxy/certs/openssl-server.cnf")
+        #expect(changes[2].targetURL.path == "/tmp/LaunchAgents/com.cj.claude-local-https-proxy.plist")
+        #expect(joinedContents.contains("KEYCHAIN_SERVICE=CJLocalProxy"))
+        #expect(joinedContents.contains("<key>RunAtLoad</key>"))
+        #expect(!joinedContents.contains("Bearer "))
+        #expect(!joinedContents.contains("sk-"))
+    }
 }

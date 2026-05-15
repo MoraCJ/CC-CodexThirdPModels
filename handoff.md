@@ -465,14 +465,98 @@ cd macos/ProxySetupApp && swift test --filter LocalInstallationServiceTests
 
 最终全量验证命令见本轮最终回复。
 
+### 0.2.17 Task 14 完成记录：安装确认、备份、回滚与 dry-run diff
+
+本轮完成 Task 14：在真实安装按钮接入之前，新增 dry-run、备份 manifest、回滚和确认门禁层。该任务仍不做真实安装，不修改本机正在运行的 Codex/Claude 配置。
+
+新增/更新文件：
+
+- 新增 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/InstallationSafetyService.swift`。
+- 新增 `macos/ProxySetupApp/Tests/ProxySetupAppTests/InstallationSafetyServiceTests.swift`。
+- 更新 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/LocalInstallationService.swift`：
+  - 新增 `managedFileChanges`，生成 proxy runtime、OpenSSL config、LaunchAgent plist 三类 managed changes。
+- 更新 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/ClientConfigService.swift`：
+  - 新增 `ClientConfigEnvironment`。
+  - 新增 `managedClientConfigChanges`，用注入路径生成 Claude CLI、Claude Desktop gateway、Codex config 三类 managed changes。
+- 更新 `macos/ProxySetupApp/Sources/ProxySetupApp/Services/ProxyInstaller.swift`：
+  - 新增 `renderRuntimeConfig`，供写入和 dry-run 共用。
+- 更新 `macos/ProxySetupApp/Sources/ProxySetupApp/AppState.swift`：
+  - 新增 Keychain 写入确认状态。
+  - 未确认账号、未确认 Keychain 写入或未输入 `KEYCHAIN` 时，状态层拒绝保存 provider key。
+- 更新 `macos/ProxySetupApp/Sources/ProxySetupApp/Views/SetupWizardView.swift`：
+  - “保存 Key / Save Keys” 旁新增 Keychain 写入确认栏。
+  - 确认条件未满足时按钮禁用。
+- 更新 `macos/ProxySetupApp/Sources/ProxySetupApp/Views/VerificationResultsView.swift`：
+  - 展示 dry-run diff。
+  - 展示 create/update/unchanged 状态。
+  - 展示 execution gate 确认要求。
+- 更新 `docs/superpowers/plans/2026-05-14-macos-local-proxy-setup-app.md`，追加 Task 14。
+- 更新 `docs/superpowers/specs/2026-05-14-macos-local-proxy-setup-app-design.md`。
+- 更新 `macos/ProxySetupApp/README.md`。
+
+当前能力：
+
+- `InstallationSafetyService.dryRun`：
+  - 对 managed files 生成 `create`、`update`、`unchanged`。
+  - 只读现有文件，不写目标文件。
+  - preview 会脱敏 `Bearer ...` 与 `sk-...` 形态的敏感值。
+- `InstallationSafetyService.createBackups`：
+  - 只备份已存在文件。
+  - 为不存在的目标记录 `existed = false`。
+  - 生成 manifest，不把 proposed contents 写进 manifest。
+- `InstallationSafetyService.rollback`：
+  - 只按 manifest 回滚。
+  - 只允许操作调用方显式传入的 allowed target roots 内的目标。
+  - 原本存在的文件从 backup 恢复。
+  - 原本不存在但被安装创建的文件会被删除。
+  - 缺 backup 时失败，不静默跳过。
+- `InstallationConfirmation`：
+  - 必须确认已查看 dry-run。
+  - 必须确认已创建 backups。
+  - 必须确认理解系统变更。
+  - 必须输入 `INSTALL` 才允许继续。
+- `KeychainWriteConfirmation`：
+  - 必须确认已核对账号。
+  - 必须确认理解会写入 macOS Keychain。
+  - 必须输入 `KEYCHAIN` 才允许保存 provider key。
+
+安全确认：
+
+- 未修改本机真实 `~/.codex/config.toml`。
+- 未修改真实 `~/.claude/settings.json`。
+- 未修改 Claude Desktop config。
+- 未写真实 `~/Library/LaunchAgents`。
+- 未写生产 Keychain 项。
+- 保存 provider key 的 UI 和状态层都新增确认门禁，自动化测试覆盖未确认不允许保存。
+- 未执行真实 `launchctl`、`security add-trusted-cert` 或 `openssl`。
+- dry-run UI 只读目标文件，不写入。
+- 备份/回滚测试只写临时目录。
+- manifest 不包含 proposed config contents，不包含真实 API Key。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test
+cd macos/ProxySetupApp && swift build
+node --test claude-local-proxy/tests/telemetry.test.js claude-local-proxy/tests/keychain.test.js
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+git diff --check
+rg -n "sk-|Bearer |Authorization: Bearer" handoff.md docs macos/ProxySetupApp claude-local-proxy || true
+./script/build_and_run.sh --verify
+```
+
+说明：敏感串扫描命中的是代码、测试和文档中的脱敏模式、占位示例或断言，没有发现真实 API Key、token、SSH 密码或私钥内容。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。
-- 当前 Task 13 worktree：`/Users/chjia/Coding/CC-CodexThirdPModels/.worktrees/macos-install-plan`。
-- 当前实现分支：`feature/macos-install-plan`。
+- Task 14 开发 worktree：`/Users/chjia/Coding/CC-CodexThirdPModels/.worktrees/macos-install-safety`。
+- Task 14 实现分支：`feature/macos-install-safety`。
 - Remote：`git@github.com:MoraCJ/CC-CodexThirdPModels.git`。
-- `origin/main` 当前仍在初始提交 `464d065`；本地 `main` 已包含 macOS App Task 1-12，尚未推送。
-- Task 13 完成后应合并回本地 `main`，再决定是否推送远端。
+- `origin/main` 当前仍在初始提交 `464d065`；本地 `main` 已包含 macOS App Task 1-14，尚未推送。
+- 是否推送远端仍由 CJ 单独决定。
 
 ## 0A. 最新补充：Usage Dashboard 与客户端来源区分
 

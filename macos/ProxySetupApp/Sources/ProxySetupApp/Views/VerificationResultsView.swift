@@ -12,6 +12,13 @@ struct VerificationResultsView: View {
             try LocalInstallationService().buildPlan(config: config)
         }
     }
+    private var dryRunResult: Result<[DryRunFileDiff], Error> {
+        Result {
+            let changes = try LocalInstallationService().managedFileChanges(config: config) +
+                ClientConfigService().managedClientConfigChanges(config: config)
+            return try InstallationSafetyService().dryRun(changes: changes)
+        }
+    }
 
     var body: some View {
         ScrollView {
@@ -118,6 +125,70 @@ struct VerificationResultsView: View {
                 }
 
                 SetupPanel(
+                    title: "Dry-run Diff / 差异预览",
+                    subtitle: "只读检查目标文件；不会写入、备份或执行系统命令。",
+                    systemImage: "doc.text.magnifyingglass"
+                ) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        switch dryRunResult {
+                        case .success(let diffs):
+                            ForEach(diffs) { diff in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text(diff.change.title)
+                                            .font(.subheadline.weight(.medium))
+                                        InfoBadge(
+                                            text: diff.kind.rawValue,
+                                            systemImage: diffIcon(diff.kind),
+                                            tint: diffTint(diff.kind)
+                                        )
+                                    }
+                                    Text(diff.change.targetURL.path)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                        .textSelection(.enabled)
+                                    Text(diff.preview)
+                                        .font(.system(.caption, design: .monospaced))
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(6)
+                                        .textSelection(.enabled)
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        case .failure(let error):
+                            Label(
+                                "Dry-run 暂不可用 / Dry-run unavailable",
+                                systemImage: "exclamationmark.triangle"
+                            )
+                            .foregroundStyle(.orange)
+                            Text(error.localizedDescription)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .textSelection(.enabled)
+                        }
+                    }
+                }
+
+                SetupPanel(
+                    title: "执行门禁 / Execution Gate",
+                    subtitle: "未来接入真实安装按钮前必须满足这些确认条件。",
+                    systemImage: "checkmark.shield"
+                ) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(InstallationConfirmation.requirements) { item in
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(item.title)
+                                    .font(.subheadline.weight(.medium))
+                                Text(item.detail)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+
+                SetupPanel(
                     title: "客户端路径 / Client Paths",
                     subtitle: "固定前缀让 dashboard 能分别统计 desktop、cli、app 用量。",
                     systemImage: "point.3.connected.trianglepath.dotted"
@@ -147,6 +218,22 @@ struct VerificationResultsView: View {
                 }
             }
             .padding(.vertical, 4)
+        }
+    }
+
+    private func diffIcon(_ kind: ManagedFileChangeKind) -> String {
+        switch kind {
+        case .create: return "plus.circle"
+        case .update: return "pencil.circle"
+        case .unchanged: return "checkmark.circle"
+        }
+    }
+
+    private func diffTint(_ kind: ManagedFileChangeKind) -> Color {
+        switch kind {
+        case .create: return .blue
+        case .update: return .orange
+        case .unchanged: return .green
         }
     }
 

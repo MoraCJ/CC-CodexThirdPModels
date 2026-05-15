@@ -1,5 +1,22 @@
 import Foundation
 
+struct ClientConfigEnvironment: Equatable {
+    var claudeSettingsURL: URL
+    var claudeDesktopGatewayURL: URL
+    var codexConfigURL: URL
+
+    static func defaultEnvironment() -> ClientConfigEnvironment {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        return ClientConfigEnvironment(
+            claudeSettingsURL: home.appendingPathComponent(".claude/settings.json"),
+            claudeDesktopGatewayURL: home.appendingPathComponent(
+                "Library/Application Support/Claude-3p/config.json"
+            ),
+            codexConfigURL: home.appendingPathComponent(".codex/config.toml")
+        )
+    }
+}
+
 struct ClientConfigService {
     let localToken = "CJ_LOCAL_PROXY_TOKEN"
 
@@ -67,6 +84,29 @@ struct ClientConfigService {
 
         \(profiles)
         """
+    }
+
+    func managedClientConfigChanges(
+        config: SetupConfiguration,
+        environment: ClientConfigEnvironment = .defaultEnvironment()
+    ) throws -> [ManagedFileChange] {
+        [
+            ManagedFileChange(
+                title: "Claude CLI settings",
+                targetURL: environment.claudeSettingsURL,
+                proposedContents: try renderClaudeSettings(config: config)
+            ),
+            ManagedFileChange(
+                title: "Claude Desktop gateway config",
+                targetURL: environment.claudeDesktopGatewayURL,
+                proposedContents: try renderClaudeDesktopGatewayConfig(config: config)
+            ),
+            ManagedFileChange(
+                title: "Codex config",
+                targetURL: environment.codexConfigURL,
+                proposedContents: renderCodexConfig(config: config)
+            ),
+        ]
     }
 
     private func prettyJSONString(_ object: [String: Any]) throws -> String {

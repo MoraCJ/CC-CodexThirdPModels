@@ -40,9 +40,13 @@ App 使用 SwiftUI 开发，包含三个主要界面：
 - Certificate service 生成 OpenSSL 证书命令和 login keychain 信任命令数组。
 - LocalInstallationService 生成本机安装计划，并可在注入的临时目录中准备代理文件、运行配置、证书配置和 LaunchAgent plist。
 - 设置向导验证页展示安装计划与安全边界，配置无效时展示错误原因。
+- InstallationSafetyService 支持 dry-run diff、backup manifest、带目标目录白名单的 rollback 和 `INSTALL` 确认门禁。
+- 设置向导验证页展示 dry-run diff、create/update/unchanged 状态和真实安装前确认要求；preview 会脱敏 `Bearer ...` 与 `sk-...` 形态的敏感值。
+- 保存 provider API Key 前需要账号核对、Keychain 写入确认，并输入 `KEYCHAIN`；未满足门禁时按钮禁用且状态层拒绝写入。
 
 当前自动化验证仍不会写真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、`~/Library/LaunchAgents` 或生产 Keychain 项。真实安装执行路径应在 App UI 中由用户显式点击触发，并保留备份与回滚。
 Task 13 只实现安装编排、命令预览和临时目录文件准备，不执行真实 `launchctl`、`security add-trusted-cert` 或 `openssl`。
+Task 14 只实现 dry-run、备份、回滚和确认门禁；UI 中的 dry-run 是只读预览，不写真实用户配置。回滚接口必须由调用方传入 allowed target roots，避免误用 manifest 操作 App 管理范围外的文件。
 
 ## 支持的配置
 
