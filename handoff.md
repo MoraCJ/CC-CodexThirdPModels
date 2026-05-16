@@ -1,6 +1,6 @@
 # Claude Code Desktop 第三方 API 接入 Handoff
 
-更新时间：2026-05-15
+更新时间：2026-05-16
 
 本文记录本次会话在项目 `/Users/chjia/Documents/Codex/2026-05-11/claude-code-app-api` 中完成的工作、当前架构决策、已知问题与后续运行/测试方式。本文不包含真实 API key、token、密码或私钥内容。
 
@@ -549,14 +549,51 @@ rg -n "sk-|Bearer |Authorization: Bearer" handoff.md docs macos/ProxySetupApp cl
 
 说明：敏感串扫描命中的是代码、测试和文档中的脱敏模式、占位示例或断言，没有发现真实 API Key、token、SSH 密码或私钥内容。
 
+### 0.2.18 测试机 App 包生成记录
+
+本轮按 CJ 要求，在当前开发机生成可拿到测试机验证的 macOS App 测试包。该包是本地测试包，不是正式 notarized 发行包。
+
+生成信息：
+
+- 源码提交：`42ee911 feat: add macos install safety layer`。
+- App bundle：`dist/ProxySetupApp.app`。
+- 测试包：`dist/ProxySetupApp-T14-42ee911-20260516.zip`。
+- zip 大小：约 `483K`。
+- SHA256：`a7d646f6e75961d8e92b5b46e3bfcd7cbc5dacb488a218dc8a92c18cdd794363`。
+
+执行过的验证：
+
+```bash
+./script/build_and_run.sh --verify
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-T14-42ee911-20260516.zip
+ditto -x -k dist/ProxySetupApp-T14-42ee911-20260516.zip /tmp/proxysetupapp-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-package-check/ProxySetupApp.app
+```
+
+测试机打开方式：
+
+```bash
+ditto -x -k ProxySetupApp-T14-42ee911-20260516.zip .
+xattr -dr com.apple.quarantine ProxySetupApp.app
+open ProxySetupApp.app
+```
+
+注意事项：
+
+- 该包只做 ad-hoc 签名，未 notarize；测试机如出现 Gatekeeper 提示，需要手动允许打开。
+- 当前 App 仍是安全预览阶段，不自动执行 `launchctl`、`security add-trusted-cert` 或 `openssl`。
+- 当前 App 不自动写真实 Claude/Codex 配置或真实 `~/Library/LaunchAgents`。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。
 - Task 14 开发 worktree：`/Users/chjia/Coding/CC-CodexThirdPModels/.worktrees/macos-install-safety`。
 - Task 14 实现分支：`feature/macos-install-safety`。
 - Remote：`git@github.com:MoraCJ/CC-CodexThirdPModels.git`。
-- `origin/main` 当前仍在初始提交 `464d065`；本地 `main` 已包含 macOS App Task 1-14，尚未推送。
-- 是否推送远端仍由 CJ 单独决定。
+- `main` 已推送到 `origin/main`，当前远端最新提交为 `42ee911`。
+- `dist/` 构建产物被 `.gitignore` 忽略，不提交测试 zip。
 
 ## 0A. 最新补充：Usage Dashboard 与客户端来源区分
 
