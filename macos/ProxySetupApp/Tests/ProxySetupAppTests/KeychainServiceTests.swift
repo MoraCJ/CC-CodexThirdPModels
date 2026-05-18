@@ -1,4 +1,5 @@
 import Foundation
+import Security
 import Testing
 @testable import ProxySetupApp
 
@@ -26,5 +27,27 @@ struct KeychainServiceTests {
 
         try service.delete(account: account)
         #expect(try service.read(account: account) == nil)
+    }
+
+    @Test
+    func keychainSaveReplacesExistingValue() throws {
+        let service = KeychainService(serviceName: "CJLocalProxyTests")
+        let account = "unit-test-replace-\(UUID().uuidString)"
+        defer {
+            try? service.delete(account: account)
+        }
+
+        try service.save("first-value", account: account)
+        try service.save("second-value", account: account)
+
+        #expect(try service.read(account: account) == "second-value")
+    }
+
+    @Test
+    func keychainErrorShowsUnderlyingOSStatus() {
+        let error = KeychainService.KeychainError.unhandled(errSecAuthFailed)
+
+        #expect(error.localizedDescription.contains("\(errSecAuthFailed)"))
+        #expect(error.localizedDescription.contains("Keychain"))
     }
 }

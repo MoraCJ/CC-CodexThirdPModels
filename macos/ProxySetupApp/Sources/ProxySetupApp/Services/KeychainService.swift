@@ -6,15 +6,28 @@ struct KeychainService {
 
     func save(_ value: String, account: String) throws {
         let data = Data(value.utf8)
-        try delete(account: account)
-        let query: [String: Any] = [
+        let baseQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: serviceName,
             kSecAttrAccount as String: account,
-            kSecValueData as String: data,
         ]
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else { throw KeychainError.unhandled(status) }
+        let addQuery: [String: Any] = baseQuery.merging([
+            kSecValueData as String: data,
+        ]) { _, new in new }
+
+        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        if addStatus == errSecSuccess { return }
+
+        if addStatus == errSecDuplicateItem {
+            let updateStatus = SecItemUpdate(
+                baseQuery as CFDictionary,
+                [kSecValueData as String: data] as CFDictionary
+            )
+            guard updateStatus == errSecSuccess else { throw KeychainError.unhandled(updateStatus) }
+            return
+        }
+
+        throw KeychainError.unhandled(addStatus)
     }
 
     func read(account: String) throws -> String? {
@@ -45,7 +58,26 @@ struct KeychainService {
         }
     }
 
-    enum KeychainError: Error, Equatable {
+    enum KeychainError: LocalizedError, Equatable {
         case unhandled(OSStatus)
+
+        var errorDescription: String? {
+            switch self {
+            case .unhandled(let status):
+                let message = SecCopyErrorMessageString(status, nil) as String?
+                    ?? "Unknown Keychain error"
+                let suggestion = recoverySuggestion(for: status)
+                return "Keychain 操作失败 / Keychain operation failed: \(message) (OSStatus \(status)).\(suggestion)"
+            }
+        }
+
+        private func recoverySuggestion(for status: OSStatus) -> String {
+            if status == errSecAuthFailed ||
+                status == errSecInteractionNotAllowed ||
+                status == errSecMissingEntitlement {
+                return " 如果测试机曾用旧测试包保存过同名条目，请先删除 Keychain 中的 CJLocalProxy 条目后重试。"
+            }
+            return ""
+        }
     }
 }
