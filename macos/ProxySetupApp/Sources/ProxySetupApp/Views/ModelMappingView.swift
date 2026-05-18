@@ -21,15 +21,41 @@ struct ModelMappingView: View {
 
                 SetupPanel(
                     title: "Codex Profiles / Codex 配置档",
-                    subtitle: "每个 profile 会生成独立模型和 reasoning effort，便于 CLI 选择。",
+                    subtitle: "第一个 profile 是 Codex 默认模型；其他 profile 会写入 config.toml，便于 CLI 手工切换。",
                     systemImage: "person.crop.square.stack"
                 ) {
                     VStack(alignment: .leading, spacing: 12) {
-                        ForEach($config.codexProfiles) { $profile in
+                        if let defaultProfile = config.codexProfiles.first {
+                            FeedbackBanner(
+                                title: "当前 Codex 默认模型 / Current Codex default",
+                                detail: "\(defaultProfile.model) · reasoning \(defaultProfile.reasoningEffort)。Codex 默认只使用这个模型；其他 profile 用于手工切换。",
+                                systemImage: "scope",
+                                tint: .blue
+                            )
+                        }
+
+                        ForEach(config.codexProfiles.indices, id: \.self) { index in
+                            let profile = config.codexProfiles[index]
+                            let profileBinding = $config.codexProfiles[index]
                             VStack(alignment: .leading, spacing: 10) {
                                 HStack {
                                     Text(profile.name.isEmpty ? "未命名 Profile" : profile.name)
                                         .font(.title3.weight(.semibold))
+                                    if index == 0 {
+                                        InfoBadge(
+                                            text: "默认 / Default",
+                                            systemImage: "checkmark.seal.fill",
+                                            tint: .green
+                                        )
+                                    } else {
+                                        Button {
+                                            makeDefault(profile.id)
+                                        } label: {
+                                            Label("设为默认 / Make Default", systemImage: "scope")
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .controlSize(.regular)
+                                    }
                                     Spacer()
                                     Button(role: .destructive) {
                                         removeProfile(profile.id)
@@ -45,21 +71,21 @@ struct ModelMappingView: View {
                                     GridRow {
                                         Text("Profile")
                                             .foregroundStyle(.secondary)
-                                        TextField("ark-default", text: $profile.name)
+                                        TextField("ark-default", text: profileBinding.name)
                                             .textFieldStyle(.roundedBorder)
                                             .controlSize(.large)
                                     }
                                     GridRow {
                                         Text("Model")
                                             .foregroundStyle(.secondary)
-                                        TextField("model-name", text: $profile.model)
+                                        TextField("model-name", text: profileBinding.model)
                                             .textFieldStyle(.roundedBorder)
                                             .controlSize(.large)
                                     }
                                     GridRow {
                                         Text("Reasoning")
                                             .foregroundStyle(.secondary)
-                                        Picker("Reasoning", selection: $profile.reasoningEffort) {
+                                        Picker("Reasoning", selection: profileBinding.reasoningEffort) {
                                             ForEach(reasoningOptions, id: \.self) { option in
                                                 Text(option).tag(option)
                                             }
@@ -114,5 +140,14 @@ struct ModelMappingView: View {
     private func removeProfile(_ id: UUID) {
         guard config.codexProfiles.count > 1 else { return }
         config.codexProfiles.removeAll { $0.id == id }
+    }
+
+    private func makeDefault(_ id: UUID) {
+        guard let index = config.codexProfiles.firstIndex(where: { $0.id == id }),
+              index != 0 else {
+            return
+        }
+        let profile = config.codexProfiles.remove(at: index)
+        config.codexProfiles.insert(profile, at: 0)
     }
 }

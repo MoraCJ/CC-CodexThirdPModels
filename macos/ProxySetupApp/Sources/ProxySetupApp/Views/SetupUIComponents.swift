@@ -93,7 +93,7 @@ struct FeedbackBanner: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 96, alignment: .topLeading)
         .background(tint.opacity(0.12))
         .overlay(
             RoundedRectangle(cornerRadius: 8)

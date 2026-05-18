@@ -63,4 +63,42 @@ struct VerificationService {
             "\(base)/codex-cli/health",
         ].compactMap(URL.init(string:))
     }
+
+    func run(config: SetupConfiguration, runner: CommandRunning = CommandRunner()) async -> VerificationSummary {
+        let names = [
+            "Proxy health",
+            "Dashboard",
+            "Telemetry summary",
+            "Claude Desktop health",
+            "Claude CLI health",
+            "Codex App health",
+            "Codex CLI health",
+        ]
+        let checks = await zip(names, VerificationService.healthURLs(config: config)).asyncMap { name, url in
+            let result = await runner.run(
+                "curl",
+                ["-sk", "-o", "/dev/null", "-w", "%{http_code}", url.absoluteString]
+            )
+            let code = result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
+            let passed = result.exitCode == 0 && (code.hasPrefix("2") || code.hasPrefix("3"))
+            return VerificationCheck(
+                name: name,
+                url: url,
+                status: passed ? .passed : .failed,
+                detail: passed ? "HTTP \(code)" : "失败 / \(result.stderr.isEmpty ? "HTTP \(code)" : result.stderr)"
+            )
+        }
+        return VerificationSummary(checks: checks)
+    }
+}
+
+private extension Sequence {
+    func asyncMap<T>(_ transform: (Element) async -> T) async -> [T] {
+        var values: [T] = []
+        for element in self {
+            let value = await transform(element)
+            values.append(value)
+        }
+        return values
+    }
 }

@@ -719,6 +719,86 @@ codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-savehint-packag
 - zip 大小：约 `533K`。
 - SHA256：`3cc769981d737c205bae146a853b5061bcceba43de46b1f372f6ca5c398e1404`。
 
+### 0.2.22 Task 15 完成记录：真实安装执行、可用性 UI 与 AppIcon
+
+本轮继续执行下一张任务卡，让 macOS App 从“配置预览”进入“用户显式确认后可真实安装”的状态。
+
+实现内容：
+
+- 新增 `InstallationExecutionService`：
+  - 安装前校验配置，并要求 `InstallationConfirmation` 全部通过且输入大写 `INSTALL`。
+  - 先为所有 managed files 创建 backup manifest。
+  - 复制内置代理资源，写入 `proxy.env`、OpenSSL config 和 LaunchAgent plist。
+  - 写入 Claude CLI、Claude Desktop 3P、Codex config。
+  - 缺证书时执行 OpenSSL 生成命令。
+  - 执行 `security add-trusted-cert` 信任本机 CA。
+  - 执行 `launchctl bootout/bootstrap/kickstart/print`。
+  - 执行 `/health`、`/dashboard`、`/telemetry/summary` 和四类客户端 health 验证。
+- 新增 `InstallationExecutionServiceTests`：
+  - 全部使用临时目录、注入环境和 mock command runner。
+  - 覆盖安装成功、缺少确认门禁、必需命令失败中断。
+  - 验证 manifest 不包含真实 key 形态。
+- `AppState` 接入安装执行状态：
+  - 安装中/安装完成/安装失败提示。
+  - 命令执行记录。
+  - 备份 manifest 路径。
+  - 端点验证结果。
+- `VerificationResultsView`：
+  - `执行门禁 / Execution Gate` 升级为 `执行安装 / Install & Start`。
+  - 只有配置检查通过、三个确认项勾选、输入 `INSTALL` 后安装按钮启用。
+  - 安装后展示命令日志、备份 manifest 和 health 验证结果。
+- Claude Desktop 配置路径修正：
+  - 从临时 `~/Library/Application Support/Claude-3p/config.json` 改为项目 runbook 要求的 `configLibrary` 体系。
+  - 写入 `~/Library/Application Support/Claude-3p/configLibrary/cj-local-proxy.json`。
+  - 写入 `~/Library/Application Support/Claude-3p/configLibrary/_meta.json`，`appliedId` 指向 `cj-local-proxy`。
+  - 写入 `~/Library/Application Support/Claude-3p/claude_desktop_config.json`，启用 `deploymentMode: 3p`。
+- Codex 模型配置说明与切换：
+  - 顶层默认 `model` 使用第一个 profile。
+  - 模型页显示“当前 Codex 默认模型”。
+  - 非默认 profile 提供 `设为默认 / Make Default` 按钮。
+  - 其他 profile 仍写入 `config.toml`，用于手工 profile 切换。
+- UI 可用性修复：
+  - 放大 `Setup Step` 三段切换控件。
+  - `检查配置 / Check` 使用与 `保存 Key / Save Keys` 一致的 prominent 按钮样式。
+  - Check 状态色：未检查蓝色、通过绿色、失败橙色。
+  - 配置检查提示卡与 Keychain 已保存提示卡统一最小高度。
+- AppIcon：
+  - 使用 CJ 提供的“哇！通过啦！”图片生成 `AppIcon.icns`。
+  - 打包脚本写入 `CFBundleIconFile=AppIcon`。
+  - `.app` 内包含 `Contents/Resources/AppIcon.icns`。
+- 打包脚本修复：
+  - `Package.swift` 改为 `.copy("Resources/ProxyBundle")`，保留 `ProxyBundle` 目录结构。
+  - `script/build_and_run.sh` 复制 SwiftPM resource bundle 到 `Contents/Resources`。
+  - `ProxyInstaller` 优先从 `Bundle.main.resourceURL/ProxySetupApp_ProxySetupApp.bundle/ProxyBundle` 找代理资源，开发测试时 fallback 到 SwiftPM `Bundle.module`。
+  - 修复了资源 bundle 放在 `.app` 根目录导致 `codesign --strict` 报 `unsealed contents` 的问题。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test
+cd macos/ProxySetupApp && swift build
+./script/build_and_run.sh --verify
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-T15-InstallUI-20260518.zip
+ditto -x -k dist/ProxySetupApp-T15-InstallUI-20260518.zip /tmp/proxysetupapp-t15-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t15-package-check/ProxySetupApp.app
+```
+
+新测试包：
+
+- `dist/ProxySetupApp-T15-InstallUI-20260518.zip`
+- zip 大小：约 `2.4M`。
+- SHA256：`fe3e25bb63df0667e8f68666f1fd623f11c3e5be9cc620b256cb98d46beb62d2`。
+
+安全备注：
+
+- 本轮自动化测试没有写本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、真实 LaunchAgent 或生产 Keychain。
+- 真实安装只能由用户在 App 内完成检查与 `INSTALL` 门禁后手动触发。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。

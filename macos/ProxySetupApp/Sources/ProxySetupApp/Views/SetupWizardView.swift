@@ -7,13 +7,7 @@ struct SetupWizardView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
 
-            Picker("Setup Step", selection: $appState.selectedSetupTab) {
-                ForEach(AppState.SetupTab.allCases) { tab in
-                    Label(tab.title, systemImage: tab.systemImage).tag(tab)
-                }
-            }
-            .pickerStyle(.segmented)
-            .controlSize(.large)
+            SetupStepSelector(selection: $appState.selectedSetupTab)
             .padding(.horizontal, 24)
             .padding(.bottom, 12)
 
@@ -113,6 +107,16 @@ struct SetupWizardView: View {
         return appState.isConfigurationValid ? .green : .orange
     }
 
+    private var checkButtonIcon: String {
+        guard appState.hasValidatedConfiguration else { return "checkmark.circle" }
+        return appState.isConfigurationValid ? "checkmark.seal.fill" : "exclamationmark.triangle.fill"
+    }
+
+    private var configurationActionTint: Color {
+        guard appState.hasValidatedConfiguration else { return .blue }
+        return appState.isConfigurationValid ? .green : .orange
+    }
+
     private var actionBar: some View {
         VStack(alignment: .leading, spacing: 10) {
             if appState.hasPendingProviderKey {
@@ -123,9 +127,11 @@ struct SetupWizardView: View {
                 Button {
                     appState.validateConfiguration()
                 } label: {
-                    Label("检查配置 / Check", systemImage: "checkmark.circle")
+                    Label("检查配置 / Check", systemImage: checkButtonIcon)
                 }
+                .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+                .tint(configurationActionTint)
 
                 Button {
                     appState.saveProviderKeysToKeychain()
@@ -134,6 +140,7 @@ struct SetupWizardView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+                .tint(saveKeyStatusTint)
                 .disabled(!appState.canSaveProviderKeys)
 
                 saveKeyStatusPill
@@ -195,5 +202,40 @@ struct SetupWizardView: View {
         .padding(12)
         .background(.thinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct SetupStepSelector: View {
+    @Binding var selection: AppState.SetupTab
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Text("Setup Step")
+                .font(.title3.weight(.semibold))
+
+            HStack(spacing: 4) {
+                ForEach(AppState.SetupTab.allCases) { tab in
+                    Button {
+                        selection = tab
+                    } label: {
+                        Label(tab.title, systemImage: tab.systemImage)
+                            .font(.title3.weight(.semibold))
+                            .lineLimit(1)
+                            .frame(minWidth: 160, maxWidth: .infinity)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(selection == tab ? Color.primary.opacity(0.16) : Color.clear)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(selection == tab ? .primary : .secondary)
+                }
+            }
+            .padding(4)
+            .background(.thinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+
+            Spacer()
+        }
     }
 }

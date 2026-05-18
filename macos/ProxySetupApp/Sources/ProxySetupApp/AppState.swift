@@ -3,6 +3,8 @@ import Foundation
 
 @MainActor
 final class AppState: ObservableObject {
+    typealias InstallationExecutor = (SetupConfiguration, InstallationConfirmation) async throws -> InstallationExecutionResult
+
     @Published var proxyStatusLabel: String = "未检测 / Not Checked"
     @Published var setupConfiguration: SetupConfiguration = .default
     @Published var selectedSection: Section? = .status
@@ -13,6 +15,25 @@ final class AppState: ObservableObject {
     @Published var keychainStatusMessage: String = "尚未保存 / Not saved"
     @Published var keychainWriteConfirmation = KeychainWriteConfirmation()
     @Published var hasValidatedConfiguration = false
+    @Published var installationConfirmation = InstallationConfirmation()
+    @Published var installationStatusMessage: String = "尚未安装 / Not installed"
+    @Published var installationCommandRecords: [InstallationCommandRecord] = []
+    @Published var installationVerificationSummary: VerificationSummary?
+    @Published var backupManifestPath: String?
+    @Published var isInstalling = false
+
+    private let installationExecutor: InstallationExecutor
+
+    init(
+        installationExecutor: @escaping InstallationExecutor = { config, confirmation in
+            try await InstallationExecutionService().execute(
+                config: config,
+                confirmation: confirmation
+            )
+        }
+    ) {
+        self.installationExecutor = installationExecutor
+    }
 
     enum Section: String, CaseIterable, Identifiable, Hashable {
         case status
@@ -177,6 +198,69 @@ final class AppState: ObservableObject {
 
     var isKeychainSaved: Bool {
         keychainStatusMessage.contains("已保存")
+    }
+
+    var canRunInstallation: Bool {
+        hasValidatedConfiguration &&
+            isConfigurationValid &&
+            installationConfirmation.canProceed &&
+            !isInstalling
+    }
+
+    var installationDisabledReason: String {
+        if isInstalling {
+            return "正在安装与验证，请稍候。"
+        }
+        if !hasValidatedConfiguration {
+            return "请先点击检查配置。"
+        }
+        if !isConfigurationValid {
+            return "请先修正配置错误。"
+        }
+        if !installationConfirmation.reviewedDryRun {
+            return "请先确认已查看差异预览。"
+        }
+        if !installationConfirmation.createdBackups {
+            return "请确认安装会先创建备份。"
+        }
+        if !installationConfirmation.understandsSystemChanges {
+            return "请确认理解 LaunchAgent、证书和客户端配置变更。"
+        }
+        if installationConfirmation.typedPhrase != "INSTALL" {
+            return "请输入大写 INSTALL 解锁安装。"
+        }
+        return "可以执行安装并启动本机代理。"
+    }
+
+    func runInstallation() async {
+        guard canRunInstallation else {
+            installationStatusMessage = "安装前请完成确认 / \(installationDisabledReason)"
+            return
+        }
+
+        isInstalling = true
+        installationStatusMessage = "正在安装并启动代理 / Installing and starting proxy..."
+        installationCommandRecords = []
+        installationVerificationSummary = nil
+        backupManifestPath = nil
+
+        do {
+            let result = try await installationExecutor(setupConfiguration, installationConfirmation)
+            installationCommandRecords = result.commandRecords
+            installationVerificationSummary = result.verificationSummary
+            backupManifestPath = result.backupResult.manifestURL.path
+            proxyStatusLabel = result.verificationSummary.isPassing
+                ? "运行中 / Running"
+                : "已安装，验证未完全通过 / Installed, verification needs attention"
+            installationStatusMessage = result.verificationSummary.isPassing
+                ? "安装完成并验证通过 / Installed and verified"
+                : "安装完成，但部分验证失败 / Installed, but verification needs attention"
+        } catch {
+            installationStatusMessage = "安装失败 / \(error.localizedDescription)"
+            proxyStatusLabel = "安装失败 / Install failed"
+        }
+
+        isInstalling = false
     }
 }
 

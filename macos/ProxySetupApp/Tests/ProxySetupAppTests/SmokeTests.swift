@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import ProxySetupApp
 
@@ -51,5 +52,89 @@ struct SmokeTests {
 
         state.keychainWriteConfirmation.understandsKeychainWrite = true
         #expect(state.saveKeysDisabledReason.contains("KEYCHAIN"))
+    }
+
+    @Test
+    @MainActor
+    func appStateRequiresInstallGateBeforeRunningInstaller() async {
+        var installCallCount = 0
+        let state = AppState(installationExecutor: { _, _ in
+            installCallCount += 1
+            return SmokeTests.successfulInstallationResult()
+        })
+
+        state.validateConfiguration()
+        await state.runInstallation()
+
+        #expect(installCallCount == 0)
+        #expect(state.installationStatusMessage.contains("完成确认"))
+    }
+
+    @Test
+    @MainActor
+    func appStateRunsInjectedInstallerAndRecordsResult() async {
+        let state = AppState(installationExecutor: { _, confirmation in
+            #expect(confirmation.canProceed)
+            return SmokeTests.successfulInstallationResult()
+        })
+        state.validateConfiguration()
+        state.installationConfirmation.reviewedDryRun = true
+        state.installationConfirmation.createdBackups = true
+        state.installationConfirmation.understandsSystemChanges = true
+        state.installationConfirmation.typedPhrase = "INSTALL"
+
+        await state.runInstallation()
+
+        #expect(state.installationStatusMessage.contains("安装完成"))
+        #expect(state.proxyStatusLabel.contains("运行中"))
+        #expect(state.installationCommandRecords.map(\.title) == ["Bootstrap LaunchAgent"])
+        #expect(state.installationVerificationSummary?.isPassing == true)
+        #expect(state.backupManifestPath == "/tmp/manifest.json")
+    }
+
+    private static func successfulInstallationResult() -> InstallationExecutionResult {
+        let config = SetupConfiguration.default
+        let installRoot = URL(fileURLWithPath: "/tmp/CJLocalProxy")
+        let proxyDirectory = installRoot.appendingPathComponent("claude-local-proxy")
+        let manifestURL = URL(fileURLWithPath: "/tmp/manifest.json")
+        let summary = VerificationSummary(
+            checks: [
+                VerificationCheck(
+                    name: "Proxy health",
+                    url: URL(string: "https://127.0.0.1:38443/health"),
+                    status: .passed,
+                    detail: "HTTP 200"
+                ),
+            ]
+        )
+
+        return InstallationExecutionResult(
+            backupResult: BackupResult(
+                manifest: BackupManifest(version: 1, createdAt: "20260518193000", entries: []),
+                manifestURL: manifestURL
+            ),
+            localInstallationResult: LocalInstallationResult(
+                installRoot: installRoot,
+                proxyDirectory: proxyDirectory,
+                launchAgentPlistURL: URL(fileURLWithPath: "/tmp/com.cj.proxy.plist"),
+                openSSLConfigURL: proxyDirectory.appendingPathComponent("certs/openssl-server.cnf"),
+                launchCommands: LaunchAgentService(label: "com.cj.proxy").controlCommands(
+                    plistURL: URL(fileURLWithPath: "/tmp/com.cj.proxy.plist"),
+                    userID: 501
+                ),
+                trustCommand: ["security", "add-trusted-cert"],
+                verificationSummary: VerificationService.pendingSummary(config: config)
+            ),
+            commandRecords: [
+                InstallationCommandRecord(
+                    title: "Bootstrap LaunchAgent",
+                    command: ["launchctl", "bootstrap"],
+                    exitCode: 0,
+                    stdout: "ok",
+                    stderr: ""
+                ),
+            ],
+            verificationSummary: summary
+        )
     }
 }

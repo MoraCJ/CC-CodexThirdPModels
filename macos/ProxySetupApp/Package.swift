@@ -10,7 +10,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "ProxySetupApp",
-            resources: [.process("Resources")]
+            resources: [.copy("Resources/ProxyBundle")]
         ),
         .testTarget(
             name: "ProxySetupAppTests",

@@ -2,10 +2,12 @@ import SwiftUI
 import Darwin
 
 struct VerificationResultsView: View {
+    @EnvironmentObject private var appState: AppState
+
     let config: SetupConfiguration
     private let configService = ClientConfigService()
     private var summary: VerificationSummary {
-        VerificationService.pendingSummary(config: config)
+        appState.installationVerificationSummary ?? VerificationService.pendingSummary(config: config)
     }
     private var installationPlanResult: Result<[InstallationPlanItem], Error> {
         Result {
@@ -32,8 +34,8 @@ struct VerificationResultsView: View {
                         ForEach(summary.checks, id: \.name) { check in
                             Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
                                 GridRow {
-                                    Label(check.name, systemImage: "circle.dashed")
-                                        .foregroundStyle(.secondary)
+                                    Label(check.name, systemImage: verificationIcon(check.status))
+                                        .foregroundStyle(verificationTint(check.status))
                                     Text(check.url?.absoluteString ?? "")
                                         .font(.system(.title3, design: .monospaced))
                                         .lineLimit(1)
@@ -53,7 +55,7 @@ struct VerificationResultsView: View {
 
                 SetupPanel(
                     title: "启动与证书命令 / Launch & Certificate Commands",
-                    subtitle: "App 后续执行这些命令；当前预览不自动运行 launchctl 或 security。",
+                    subtitle: "点击执行安装前可在此审查命令；执行时会按这些命令运行。",
                     systemImage: "terminal"
                 ) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -112,15 +114,15 @@ struct VerificationResultsView: View {
 
                 SetupPanel(
                     title: "安全边界 / Safety Boundary",
-                    subtitle: "当前页面只展示计划和预览；真实安装必须由用户显式触发。",
+                    subtitle: "默认先预览；只有完成确认并点击执行安装后才会写入和启动。",
                     systemImage: "hand.raised"
                 ) {
                     VStack(alignment: .leading, spacing: 8) {
-                        safetyRow("不自动修改 ~/.codex/config.toml")
-                        safetyRow("不自动修改 ~/.claude/settings.json")
-                        safetyRow("不自动写真实 ~/Library/LaunchAgents")
-                        safetyRow("不执行 launchctl、security 或 openssl")
-                        safetyRow("真实 API Key 只通过保存 Key 按钮进入 Keychain")
+                        safetyRow("安装前先查看 dry-run diff / Review dry-run before install")
+                        safetyRow("写入前创建备份 manifest / Backup manifest before writes")
+                        safetyRow("真实 API Key 仍只保存在 Keychain / Real API keys stay in Keychain")
+                        safetyRow("执行安装会写入客户端配置与 LaunchAgent / Install writes client config and LaunchAgent")
+                        safetyRow("执行安装会生成证书并启动代理 / Install creates certs and starts proxy")
                     }
                 }
 
@@ -171,21 +173,11 @@ struct VerificationResultsView: View {
                 }
 
                 SetupPanel(
-                    title: "执行门禁 / Execution Gate",
-                    subtitle: "未来接入真实安装按钮前必须满足这些确认条件。",
-                    systemImage: "checkmark.shield"
+                    title: "执行安装 / Install & Start",
+                    subtitle: "完成确认后，App 会备份文件、写入配置、生成证书、启动 LaunchAgent，并立即验证代理端点。",
+                    systemImage: "play.circle"
                 ) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        ForEach(InstallationConfirmation.requirements) { item in
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(item.title)
-                                    .font(.headline)
-                                Text(item.detail)
-                                    .font(.callout)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                    installationGateView
                 }
 
                 SetupPanel(
@@ -218,6 +210,153 @@ struct VerificationResultsView: View {
                 }
             }
             .padding(.vertical, 4)
+        }
+    }
+
+    private var installationGateView: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
+                Label(
+                    appState.installationStatusMessage,
+                    systemImage: installationStatusIcon
+                )
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(installationStatusTint)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(installationStatusTint.opacity(0.14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(installationStatusTint.opacity(0.35), lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                Button {
+                    Task {
+                        await appState.runInstallation()
+                    }
+                } label: {
+                    Label(
+                        appState.isInstalling ? "正在安装 / Installing" : "执行安装 / Install & Start",
+                        systemImage: appState.isInstalling ? "hourglass" : "play.fill"
+                    )
+                    .frame(minWidth: 210)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(!appState.canRunInstallation)
+            }
+
+            Label(
+                appState.installationDisabledReason,
+                systemImage: appState.canRunInstallation ? "checkmark.circle.fill" : "info.circle.fill"
+            )
+            .font(.headline)
+            .foregroundStyle(appState.canRunInstallation ? .green : .orange)
+
+            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 12) {
+                GridRow {
+                    Toggle(
+                        "已查看差异预览 / Dry-run reviewed",
+                        isOn: $appState.installationConfirmation.reviewedDryRun
+                    )
+                    .toggleStyle(.checkbox)
+
+                    Toggle(
+                        "允许创建备份 / Backups allowed",
+                        isOn: $appState.installationConfirmation.createdBackups
+                    )
+                    .toggleStyle(.checkbox)
+
+                    Toggle(
+                        "理解系统变更 / System changes understood",
+                        isOn: $appState.installationConfirmation.understandsSystemChanges
+                    )
+                    .toggleStyle(.checkbox)
+                }
+                GridRow {
+                    Text("确认词 / Confirm")
+                        .foregroundStyle(.secondary)
+                    TextField("输入大写 INSTALL / Type INSTALL", text: $appState.installationConfirmation.typedPhrase)
+                        .textFieldStyle(.roundedBorder)
+                        .controlSize(.large)
+                        .frame(minWidth: 260)
+                    Text("按钮会在配置检查通过并输入 INSTALL 后启用。")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .font(.callout.weight(.semibold))
+
+            if let backupManifestPath = appState.backupManifestPath {
+                Label("备份 manifest / Backup manifest: \(backupManifestPath)", systemImage: "archivebox.fill")
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(.green)
+                    .lineLimit(2)
+                    .textSelection(.enabled)
+            }
+
+            if !appState.installationCommandRecords.isEmpty {
+                Divider()
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("执行记录 / Command Log")
+                        .font(.headline)
+                    ForEach(appState.installationCommandRecords) { record in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label(
+                                record.title,
+                                systemImage: record.succeeded ? "checkmark.circle.fill" : "xmark.octagon.fill"
+                            )
+                            .font(.callout.weight(.semibold))
+                            .foregroundStyle(record.succeeded ? .green : .red)
+                            Text(record.command.joined(separator: " "))
+                                .font(.system(.callout, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .textSelection(.enabled)
+                            if !record.stderr.isEmpty {
+                                Text(record.stderr)
+                                    .font(.callout)
+                                    .foregroundStyle(.red)
+                                    .lineLimit(3)
+                                    .textSelection(.enabled)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var installationStatusIcon: String {
+        if appState.isInstalling { return "hourglass" }
+        if appState.installationStatusMessage.contains("完成") { return "checkmark.seal.fill" }
+        if appState.installationStatusMessage.contains("失败") { return "xmark.octagon.fill" }
+        return "info.circle.fill"
+    }
+
+    private var installationStatusTint: Color {
+        if appState.isInstalling { return .blue }
+        if appState.installationStatusMessage.contains("完成") { return .green }
+        if appState.installationStatusMessage.contains("失败") { return .red }
+        return .orange
+    }
+
+    private func verificationIcon(_ status: VerificationStatus) -> String {
+        switch status {
+        case .notRun: return "circle.dashed"
+        case .passed: return "checkmark.circle.fill"
+        case .failed: return "xmark.octagon.fill"
+        }
+    }
+
+    private func verificationTint(_ status: VerificationStatus) -> Color {
+        switch status {
+        case .notRun: return .secondary
+        case .passed: return .green
+        case .failed: return .red
         }
     }
 

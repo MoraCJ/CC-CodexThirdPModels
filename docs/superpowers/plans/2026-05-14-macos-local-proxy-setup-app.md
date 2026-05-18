@@ -1797,6 +1797,60 @@ node --check claude-local-proxy/keychain.js
 
 Expected: all tests/builds pass. No command should modify real Claude/Codex config, real LaunchAgents, production Keychain, or execute real system install commands.
 
+### Task 15: 真实安装执行、可用性 UI 与 AppIcon
+
+**Files:**
+- Create: `macos/ProxySetupApp/Sources/ProxySetupApp/Services/InstallationExecutionService.swift`
+- Create: `macos/ProxySetupApp/Tests/ProxySetupAppTests/InstallationExecutionServiceTests.swift`
+- Create: `macos/ProxySetupApp/Assets/AppIconSource.png`
+- Create: `macos/ProxySetupApp/Assets/AppIcon.iconset/*`
+- Create: `macos/ProxySetupApp/Assets/AppIcon.icns`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/AppState.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Services/ClientConfigService.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Services/VerificationService.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Views/SetupWizardView.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Views/ModelMappingView.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Views/VerificationResultsView.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Views/SetupUIComponents.swift`
+- Modify: `macos/ProxySetupApp/Package.swift`
+- Modify: `script/build_and_run.sh`
+- Modify: `macos/ProxySetupApp/README.md`
+- Modify: `handoff.md`
+
+- [x] **Step 1: 写安装执行 tests**
+
+覆盖：注入临时目录执行安装、`INSTALL` 门禁、backup manifest、代理文件复制、Claude/Codex 客户端配置写入、OpenSSL/security/launchctl/curl 命令记录、失败命令中断、manifest 不含真实 key。
+
+- [x] **Step 2: 实现 `InstallationExecutionService`**
+
+执行顺序：校验配置与确认门禁；创建备份；准备代理文件、runtime config、OpenSSL config、LaunchAgent plist；写 Claude CLI、Claude Desktop 3P、Codex config；生成证书；信任本机 CA；bootstrap/kickstart LaunchAgent；运行 health 验证。
+
+- [x] **Step 3: 接入 AppState 与验证页真实安装按钮**
+
+`AppState` 新增安装状态、命令记录、备份 manifest 路径和验证结果；验证页从只读 gate 升级为 `执行安装 / Install & Start`，只有配置检查通过、三个确认项完成并输入 `INSTALL` 后启用。
+
+- [x] **Step 4: 修正 Claude Desktop 与 Codex 默认模型可用性**
+
+Claude Desktop 改为写入 `Claude-3p/configLibrary/cj-local-proxy.json`、`_meta.json` 和 `claude_desktop_config.json`；Codex 顶层默认模型明确使用第一个 profile，模型页提供“设为默认 / Make Default”按钮。
+
+- [x] **Step 5: UI 可用性与 AppIcon**
+
+放大 Setup Step 三段切换控件；Check 按钮与 Save Keys 使用一致的 prominent 样式和状态色；两张提示卡统一最小高度；使用 CJ 提供的“哇！通过啦！”图片生成 `AppIcon.icns`；打包脚本复制 AppIcon 与 SwiftPM resource bundle。
+
+- [x] **Step 6: 验证**
+
+Run:
+
+```bash
+cd macos/ProxySetupApp
+swift test
+swift build
+cd ../..
+./script/build_and_run.sh --verify
+```
+
+Expected: Swift tests/builds pass；`.app` 可启动；`.app` 内包含 `ProxySetupApp_ProxySetupApp.bundle/ProxyBundle/*` 与 `Contents/Resources/AppIcon.icns`；自动化验证只启动 App，不点击真实安装，不写本机真实配置。
+
 ## 自检清单
 
 - Spec 覆盖：
@@ -1812,12 +1866,14 @@ Expected: all tests/builds pass. No command should modify real Claude/Codex conf
   - 文档与 handoff：Task 12 覆盖。
   - 本机安装编排与安全预览：Task 13 覆盖。
   - dry-run、备份、回滚、确认门禁：Task 14 覆盖。
+  - 真实安装执行按钮、安装命令记录、AppIcon 和资源 bundle 打包：Task 15 覆盖。
 - 范围边界：
   - 不做远程 SSH。
   - 不做签名 `.pkg`。
   - 不自动安装 Node.js、Claude Code 或 Codex。
   - Task 13 不执行真实 `launchctl`、`security add-trusted-cert` 或 `openssl`。
   - Task 14 不写真实用户配置；只做临时目录测试与 UI 只读预览。
+  - Task 15 自动化测试只使用注入临时目录；真实安装必须由用户在 App 内完成检查和 `INSTALL` 门禁后手动触发。
   - 不记录 prompt、response、Authorization、Cookie 或真实 API Key。
 - 执行顺序：
   - Task 1 必须先执行，因为 App 的安全设计依赖代理能从 Keychain 读取真实上游 key。

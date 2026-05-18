@@ -21,7 +21,7 @@ struct ProxyInstaller {
     }
 
     func copyBundledProxyFiles() throws {
-        guard let bundleURL = Bundle.module.url(forResource: "ProxyBundle", withExtension: nil) else {
+        guard let bundleURL = bundledProxyDirectory() else {
             throw InstallerError.missingProxyBundle
         }
         try copyProxyFiles(from: bundleURL)
@@ -87,5 +87,30 @@ struct ProxyInstaller {
 
     enum InstallerError: Error, Equatable {
         case missingProxyBundle
+    }
+
+    private func bundledProxyDirectory() -> URL? {
+        let fileManager = FileManager.default
+        if let appResourceURL = Bundle.main.resourceURL {
+            let packagedURL = appResourceURL
+                .appendingPathComponent("ProxySetupApp_ProxySetupApp.bundle", isDirectory: true)
+                .appendingPathComponent("ProxyBundle", isDirectory: true)
+            if fileManager.fileExists(atPath: packagedURL.path) {
+                return packagedURL
+            }
+        }
+
+        if let swiftPMURL = Bundle.module.url(forResource: "ProxyBundle", withExtension: nil),
+           fileManager.fileExists(atPath: swiftPMURL.path) {
+            return swiftPMURL
+        }
+
+        if let resourceURL = Bundle.module.resourceURL?
+            .appendingPathComponent("ProxyBundle", isDirectory: true),
+            fileManager.fileExists(atPath: resourceURL.path) {
+            return resourceURL
+        }
+
+        return nil
     }
 }

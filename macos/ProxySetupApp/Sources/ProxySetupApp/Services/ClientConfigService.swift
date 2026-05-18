@@ -3,21 +3,31 @@ import Foundation
 struct ClientConfigEnvironment: Equatable {
     var claudeSettingsURL: URL
     var claudeDesktopGatewayURL: URL
+    var claudeDesktopMetaURL: URL
+    var claudeDesktopModeURL: URL
     var codexConfigURL: URL
 
     static func defaultEnvironment() -> ClientConfigEnvironment {
         let home = FileManager.default.homeDirectoryForCurrentUser
+        let claudeDesktopRoot = home.appendingPathComponent(
+            "Library/Application Support/Claude-3p"
+        )
+        let configLibrary = claudeDesktopRoot.appendingPathComponent(
+            "configLibrary",
+            isDirectory: true
+        )
         return ClientConfigEnvironment(
             claudeSettingsURL: home.appendingPathComponent(".claude/settings.json"),
-            claudeDesktopGatewayURL: home.appendingPathComponent(
-                "Library/Application Support/Claude-3p/config.json"
-            ),
+            claudeDesktopGatewayURL: configLibrary.appendingPathComponent("cj-local-proxy.json"),
+            claudeDesktopMetaURL: configLibrary.appendingPathComponent("_meta.json"),
+            claudeDesktopModeURL: claudeDesktopRoot.appendingPathComponent("claude_desktop_config.json"),
             codexConfigURL: home.appendingPathComponent(".codex/config.toml")
         )
     }
 }
 
 struct ClientConfigService {
+    private let claudeDesktopConfigID = "cj-local-proxy"
     let localToken = "CJ_LOCAL_PROXY_TOKEN"
 
     func renderClaudeSettings(config: SetupConfiguration) throws -> String {
@@ -36,6 +46,8 @@ struct ClientConfigService {
 
     func renderClaudeDesktopGatewayConfig(config: SetupConfiguration) throws -> String {
         let object: [String: Any] = [
+            "id": claudeDesktopConfigID,
+            "name": "CJ Local Proxy",
             "provider": "gateway",
             "gatewayBaseUrl": config.claudeDesktopBaseURL.absoluteString,
             "inferenceGatewayBaseUrl": config.claudeDesktopBaseURL.absoluteString,
@@ -49,6 +61,24 @@ struct ClientConfigService {
             "hideAnthropicSignIn": true,
         ]
         return try prettyJSONString(object)
+    }
+
+    func renderClaudeDesktopMetaConfig() throws -> String {
+        let object: [String: Any] = [
+            "appliedId": claudeDesktopConfigID,
+            "configs": [
+                [
+                    "id": claudeDesktopConfigID,
+                    "name": "CJ Local Proxy",
+                    "provider": "gateway",
+                ],
+            ],
+        ]
+        return try prettyJSONString(object)
+    }
+
+    func renderClaudeDesktopDeploymentModeConfig() throws -> String {
+        try prettyJSONString(["deploymentMode": "3p"])
     }
 
     func renderCodexConfig(config: SetupConfiguration) -> String {
@@ -100,6 +130,16 @@ struct ClientConfigService {
                 title: "Claude Desktop gateway config",
                 targetURL: environment.claudeDesktopGatewayURL,
                 proposedContents: try renderClaudeDesktopGatewayConfig(config: config)
+            ),
+            ManagedFileChange(
+                title: "Claude Desktop config library meta",
+                targetURL: environment.claudeDesktopMetaURL,
+                proposedContents: try renderClaudeDesktopMetaConfig()
+            ),
+            ManagedFileChange(
+                title: "Claude Desktop deployment mode",
+                targetURL: environment.claudeDesktopModeURL,
+                proposedContents: try renderClaudeDesktopDeploymentModeConfig()
             ),
             ManagedFileChange(
                 title: "Codex config",
