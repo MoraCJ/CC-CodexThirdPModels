@@ -634,6 +634,58 @@ codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-ux-package-chec
 - zip 大小：约 `525K`。
 - SHA256：`d7e48973c38f25ccb9a472a4ee8751cfa0a5a3ceb53c6b6fd8bcc816a3c1fbab`。
 
+### 0.2.20 测试机反馈修复：Keychain 保存失败信息与覆盖逻辑
+
+测试机反馈：点击 `保存 Key / Save Keys` 后出现 `ProxySetupApp.KeychainService.KeychainError error 0`，无法判断真实原因。
+
+根因判断：
+
+- `error 0` 是 Swift enum bridge 到 `NSError` 后的泛化 code，不是真实 Keychain OSStatus。
+- 旧逻辑保存前会先 `SecItemDelete`，再 `SecItemAdd`。测试机如果曾用旧测试包保存过同名 Keychain 条目，新包 ad-hoc 签名不同，删除或覆盖旧条目可能被 Keychain 拒绝。
+
+修复内容：
+
+- `KeychainService.save` 改为：
+  - 先 `SecItemAdd`。
+  - 如遇 `errSecDuplicateItem`，再 `SecItemUpdate`。
+  - 不再先删除旧值，降低权限/签名变化导致的失败风险。
+- `KeychainError` 改为 `LocalizedError`：
+  - 显示 `SecCopyErrorMessageString`。
+  - 显示真实 `OSStatus`。
+  - 对 auth/interaction/entitlement 类错误，提示测试机可先删除旧 `CJLocalProxy` 条目后重试。
+- 新增测试：
+  - 重复保存同一 account 会覆盖为新值。
+  - Keychain 错误信息包含底层 OSStatus。
+
+验证与打包：
+
+```bash
+cd macos/ProxySetupApp && swift test --filter KeychainServiceTests
+cd macos/ProxySetupApp && swift test
+cd macos/ProxySetupApp && swift build
+./script/build_and_run.sh --verify
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-Keychain-bb0db7d-20260518.zip
+ditto -x -k dist/ProxySetupApp-Keychain-bb0db7d-20260518.zip /tmp/proxysetupapp-keychain-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-keychain-package-check/ProxySetupApp.app
+```
+
+新测试包：
+
+- `dist/ProxySetupApp-Keychain-bb0db7d-20260518.zip`
+- zip 大小：约 `526K`。
+- SHA256：`59060ab3124d8c2df72c0f3ec300fef9dbf58de2748ad2791c958ee91a2001cc`。
+
+如果测试机仍因旧包留下的 Keychain ACL 失败，可先在测试机执行：
+
+```bash
+security delete-generic-password -s CJLocalProxy -a claude-upstream-api-key
+security delete-generic-password -s CJLocalProxy -a codex-upstream-api-key
+```
+
+再重新打开 App 保存。删除的是测试机 `CJLocalProxy` service 下这两个 provider API Key 条目，不影响其他 Keychain 项。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。
