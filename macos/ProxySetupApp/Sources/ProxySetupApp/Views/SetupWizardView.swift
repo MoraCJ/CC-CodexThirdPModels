@@ -136,16 +136,42 @@ struct SetupWizardView: View {
                 .controlSize(.large)
                 .disabled(!appState.canSaveProviderKeys)
 
-                Label(appState.saveKeysDisabledReason, systemImage: appState.canSaveProviderKeys ? "checkmark.circle.fill" : "info.circle")
-                    .font(.callout.weight(.medium))
-                    .foregroundStyle(appState.canSaveProviderKeys ? .green : .secondary)
-                    .lineLimit(2)
+                saveKeyStatusPill
 
                 Spacer()
             }
         }
         .padding(24)
         .background(.bar)
+    }
+
+    private var saveKeyStatusPill: some View {
+        let tint = saveKeyStatusTint
+        return Label(appState.saveKeysDisabledReason, systemImage: saveKeyStatusIcon)
+            .font(.headline.weight(.semibold))
+            .foregroundStyle(tint)
+            .lineLimit(2)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(tint.opacity(0.14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(tint.opacity(0.35), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var saveKeyStatusIcon: String {
+        if appState.canSaveProviderKeys { return "checkmark.circle.fill" }
+        if appState.isKeychainSaved { return "checkmark.seal.fill" }
+        return "exclamationmark.circle.fill"
+    }
+
+    private var saveKeyStatusTint: Color {
+        if appState.canSaveProviderKeys || appState.isKeychainSaved { return .green }
+        if appState.hasPendingProviderKey { return .orange }
+        return .blue
     }
 
     private var keychainConfirmationBar: some View {
