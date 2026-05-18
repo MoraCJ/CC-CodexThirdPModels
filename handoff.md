@@ -686,6 +686,39 @@ security delete-generic-password -s CJLocalProxy -a codex-upstream-api-key
 
 再重新打开 App 保存。删除的是测试机 `CJLocalProxy` service 下这两个 provider API Key 条目，不影响其他 Keychain 项。
 
+### 0.2.21 测试机反馈修复：保存 Key 右侧提示增强
+
+测试机反馈：`保存 Key / Save Keys` 按钮右侧提示仍然不够醒目。
+
+修复内容：
+
+- 将按钮右侧提示从灰色小字改为状态胶囊。
+- 使用更粗的 `headline` 字重。
+- 根据状态切换颜色：
+  - 已保存或可保存：绿色。
+  - 已输入 key 但确认不足：橙色。
+  - 未输入 key：蓝色。
+- 胶囊带图标、浅色背景和描边，避免被底部按钮栏压住。
+
+验证与打包：
+
+```bash
+cd macos/ProxySetupApp && swift test
+cd macos/ProxySetupApp && swift build
+./script/build_and_run.sh --verify
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-SaveHint-ab56606-20260518.zip
+ditto -x -k dist/ProxySetupApp-SaveHint-ab56606-20260518.zip /tmp/proxysetupapp-savehint-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-savehint-package-check/ProxySetupApp.app
+```
+
+新测试包：
+
+- `dist/ProxySetupApp-SaveHint-ab56606-20260518.zip`
+- zip 大小：约 `533K`。
+- SHA256：`3cc769981d737c205bae146a853b5061bcceba43de46b1f372f6ca5c398e1404`。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。
