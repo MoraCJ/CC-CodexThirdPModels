@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import ProxySetupApp
 
@@ -40,5 +41,59 @@ struct VerificationServiceTests {
         #expect(names.contains("Codex App health"))
         #expect(names.contains("Codex CLI health"))
         #expect(summary.checks.allSatisfy { $0.status == .notRun })
+    }
+
+    @Test
+    func runRetriesTransientHTTP000UntilEndpointIsReady() async {
+        let runner = TransientCurlRunner(failuresBeforeSuccess: 2)
+        let summary = await VerificationService().run(
+            config: .default,
+            runner: runner,
+            attempts: 3,
+            retryDelayNanoseconds: 0
+        )
+
+        #expect(summary.isPassing)
+        #expect(summary.checks.allSatisfy { $0.detail.contains("attempt") })
+        #expect(runner.callCount >= VerificationService.healthURLs(config: .default).count + 2)
+    }
+
+    @Test
+    func runReportsCurlErrorAfterRetriesAreExhausted() async {
+        let runner = TransientCurlRunner(failuresBeforeSuccess: .max)
+        let summary = await VerificationService().run(
+            config: .default,
+            runner: runner,
+            attempts: 2,
+            retryDelayNanoseconds: 0
+        )
+
+        #expect(!summary.isPassing)
+        #expect(summary.failedCount == summary.checks.count)
+        #expect(summary.checks.allSatisfy { $0.detail.contains("connection refused") })
+    }
+}
+
+private final class TransientCurlRunner: CommandRunning, @unchecked Sendable {
+    private let lock = NSLock()
+    private let failuresBeforeSuccess: Int
+    private var calls = 0
+
+    init(failuresBeforeSuccess: Int) {
+        self.failuresBeforeSuccess = failuresBeforeSuccess
+    }
+
+    var callCount: Int {
+        lock.withLock { calls }
+    }
+
+    func run(_ executable: String, _ arguments: [String]) async -> CommandResult {
+        lock.withLock {
+            calls += 1
+            if calls <= failuresBeforeSuccess {
+                return CommandResult(exitCode: 7, stdout: "000", stderr: "connection refused")
+            }
+            return CommandResult(exitCode: 0, stdout: "200", stderr: "")
+        }
     }
 }

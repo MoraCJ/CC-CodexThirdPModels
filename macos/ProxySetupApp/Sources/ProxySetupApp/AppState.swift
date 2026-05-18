@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class AppState: ObservableObject {
     typealias InstallationExecutor = (SetupConfiguration, InstallationConfirmation) async throws -> InstallationExecutionResult
+    typealias VerificationExecutor = (SetupConfiguration) async -> VerificationSummary
 
     @Published var proxyStatusLabel: String = "未检测 / Not Checked"
     @Published var setupConfiguration: SetupConfiguration = .default
@@ -21,8 +22,10 @@ final class AppState: ObservableObject {
     @Published var installationVerificationSummary: VerificationSummary?
     @Published var backupManifestPath: String?
     @Published var isInstalling = false
+    @Published var isVerifyingInstallation = false
 
     private let installationExecutor: InstallationExecutor
+    private let verificationExecutor: VerificationExecutor
 
     init(
         installationExecutor: @escaping InstallationExecutor = { config, confirmation in
@@ -30,9 +33,13 @@ final class AppState: ObservableObject {
                 config: config,
                 confirmation: confirmation
             )
+        },
+        verificationExecutor: @escaping VerificationExecutor = { config in
+            await VerificationService().run(config: config)
         }
     ) {
         self.installationExecutor = installationExecutor
+        self.verificationExecutor = verificationExecutor
     }
 
     enum Section: String, CaseIterable, Identifiable, Hashable {
@@ -261,6 +268,24 @@ final class AppState: ObservableObject {
         }
 
         isInstalling = false
+    }
+
+    func recheckInstallation() async {
+        guard !isInstalling, !isVerifyingInstallation else { return }
+
+        isVerifyingInstallation = true
+        installationStatusMessage = "正在重新验证代理 / Rechecking proxy..."
+
+        let summary = await verificationExecutor(setupConfiguration)
+        installationVerificationSummary = summary
+        proxyStatusLabel = summary.isPassing
+            ? "运行中 / Running"
+            : "验证未通过 / Verification failed"
+        installationStatusMessage = summary.isPassing
+            ? "验证通过 / Verification passed"
+            : "验证未通过，请稍后重试或查看代理日志 / Verification failed, retry or check proxy logs"
+
+        isVerifyingInstallation = false
     }
 }
 

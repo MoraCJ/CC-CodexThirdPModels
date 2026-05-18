@@ -31,6 +31,30 @@ struct VerificationResultsView: View {
                     systemImage: "checkmark.seal"
                 ) {
                     VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Label(
+                                appState.isVerifyingInstallation
+                                    ? "正在重新验证 / Rechecking..."
+                                    : "安装后如出现 HTTP 000，可等待几秒后重新验证。",
+                                systemImage: appState.isVerifyingInstallation ? "hourglass" : "arrow.clockwise.circle"
+                            )
+                            .font(.callout.weight(.semibold))
+                            .foregroundStyle(appState.isVerifyingInstallation ? .blue : .secondary)
+
+                            Spacer()
+
+                            Button {
+                                Task {
+                                    await appState.recheckInstallation()
+                                }
+                            } label: {
+                                Label("重新验证 / Recheck", systemImage: "arrow.clockwise")
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .disabled(appState.isInstalling || appState.isVerifyingInstallation)
+                        }
+
                         ForEach(summary.checks, id: \.name) { check in
                             Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
                                 GridRow {
@@ -248,6 +272,21 @@ struct VerificationResultsView: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .disabled(!appState.canRunInstallation)
+
+                Button {
+                    Task {
+                        await appState.recheckInstallation()
+                    }
+                } label: {
+                    Label(
+                        appState.isVerifyingInstallation ? "验证中 / Rechecking" : "重新验证 / Recheck",
+                        systemImage: appState.isVerifyingInstallation ? "hourglass" : "arrow.clockwise"
+                    )
+                    .frame(minWidth: 170)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .disabled(appState.isInstalling || appState.isVerifyingInstallation)
             }
 
             Label(
@@ -331,16 +370,28 @@ struct VerificationResultsView: View {
     }
 
     private var installationStatusIcon: String {
-        if appState.isInstalling { return "hourglass" }
-        if appState.installationStatusMessage.contains("完成") { return "checkmark.seal.fill" }
-        if appState.installationStatusMessage.contains("失败") { return "xmark.octagon.fill" }
+        if appState.isInstalling || appState.isVerifyingInstallation { return "hourglass" }
+        if appState.installationStatusMessage.contains("完成") ||
+            appState.installationStatusMessage.contains("验证通过") {
+            return "checkmark.seal.fill"
+        }
+        if appState.installationStatusMessage.contains("失败") ||
+            appState.installationStatusMessage.contains("未通过") {
+            return "xmark.octagon.fill"
+        }
         return "info.circle.fill"
     }
 
     private var installationStatusTint: Color {
-        if appState.isInstalling { return .blue }
-        if appState.installationStatusMessage.contains("完成") { return .green }
-        if appState.installationStatusMessage.contains("失败") { return .red }
+        if appState.isInstalling || appState.isVerifyingInstallation { return .blue }
+        if appState.installationStatusMessage.contains("完成") ||
+            appState.installationStatusMessage.contains("验证通过") {
+            return .green
+        }
+        if appState.installationStatusMessage.contains("失败") ||
+            appState.installationStatusMessage.contains("未通过") {
+            return .red
+        }
         return .orange
     }
 

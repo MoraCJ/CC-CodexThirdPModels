@@ -92,21 +92,26 @@ struct SmokeTests {
         #expect(state.backupManifestPath == "/tmp/manifest.json")
     }
 
+    @Test
+    @MainActor
+    func appStateCanRecheckInstalledProxyWithoutReinstalling() async {
+        let state = AppState(verificationExecutor: { _ in
+            SmokeTests.successfulVerificationSummary()
+        })
+
+        await state.recheckInstallation()
+
+        #expect(state.installationVerificationSummary?.isPassing == true)
+        #expect(state.installationStatusMessage.contains("验证通过"))
+        #expect(state.proxyStatusLabel.contains("运行中"))
+    }
+
     private static func successfulInstallationResult() -> InstallationExecutionResult {
         let config = SetupConfiguration.default
         let installRoot = URL(fileURLWithPath: "/tmp/CJLocalProxy")
         let proxyDirectory = installRoot.appendingPathComponent("claude-local-proxy")
         let manifestURL = URL(fileURLWithPath: "/tmp/manifest.json")
-        let summary = VerificationSummary(
-            checks: [
-                VerificationCheck(
-                    name: "Proxy health",
-                    url: URL(string: "https://127.0.0.1:38443/health"),
-                    status: .passed,
-                    detail: "HTTP 200"
-                ),
-            ]
-        )
+        let summary = successfulVerificationSummary()
 
         return InstallationExecutionResult(
             backupResult: BackupResult(
@@ -135,6 +140,19 @@ struct SmokeTests {
                 ),
             ],
             verificationSummary: summary
+        )
+    }
+
+    private static func successfulVerificationSummary() -> VerificationSummary {
+        VerificationSummary(
+            checks: [
+                VerificationCheck(
+                    name: "Proxy health",
+                    url: URL(string: "https://127.0.0.1:38443/health"),
+                    status: .passed,
+                    detail: "HTTP 200"
+                ),
+            ]
         )
     }
 }

@@ -799,6 +799,66 @@ codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t15-package-che
 - 本轮自动化测试没有写本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、真实 LaunchAgent 或生产 Keychain。
 - 真实安装只能由用户在 App 内完成检查与 `INSTALL` 门禁后手动触发。
 
+### 0.2.23 测试机反馈修复：安装后验证 HTTP 000
+
+测试机反馈：安装执行记录里 LaunchAgent bootstrap/kickstart/print 成功，但验证端点全部显示 `失败 / HTTP 000`，界面状态为 `Installed, but verification needs attention`。
+
+判断：
+
+- `launchctl print` 成功只能说明 LaunchAgent job 已加载，不代表 Node 代理已经完成启动并开始监听端口。
+- `HTTP 000` 是 curl 没拿到 HTTP 状态，常见原因是启动窗口期连接被拒绝或连接超时。
+- 截图里的 `Stop existing LaunchAgent` 红字是首次安装时正常信号：旧 job 不存在，`bootout` 返回 `Boot-out failed`，安装流程会忽略这个非关键失败。
+
+修复内容：
+
+- `VerificationService.run` 增加验证重试：
+  - 默认每个端点最多 8 次。
+  - 每次间隔 0.5 秒。
+  - 测试可注入 `attempts` 和 `retryDelayNanoseconds`。
+- curl 参数改为：
+
+```bash
+curl -skS --connect-timeout 2 --max-time 5 -o /dev/null -w "%{http_code}" <url>
+```
+
+这样保留 `-k` 跳过本机自签证书校验，同时 `-S` 会把连接错误写入 stderr，界面能显示更具体原因。
+
+- `AppState` 新增 `recheckInstallation()`：
+  - 只重新跑 health/dashboard/telemetry/client health 验证。
+  - 不重装、不写配置、不重新生成证书、不动 Keychain。
+- `VerificationResultsView`：
+  - 验证端点卡片新增 `重新验证 / Recheck`。
+  - 执行安装卡片新增 `重新验证 / Recheck`。
+  - `验证通过 / Verification passed` 使用绿色状态。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test
+cd macos/ProxySetupApp && swift build
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+./script/build_and_run.sh --verify
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-T16-VerifyRetry-20260518.zip
+ditto -x -k dist/ProxySetupApp-T16-VerifyRetry-20260518.zip /tmp/proxysetupapp-t16-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t16-package-check/ProxySetupApp.app
+```
+
+新测试包：
+
+- `dist/ProxySetupApp-T16-VerifyRetry-20260518.zip`
+- zip 大小：约 `2.5M`。
+- SHA256：`f0399dd64ddb4d0b4e43a7df47907086ed7a61fe71bffe236e04542a6d2003f2`。
+
+测试机操作建议：
+
+- 如果旧包已安装并已显示 dashboard 可打开，说明代理大概率已起来。
+- 等 5-10 秒后可点新版 App 里的 `重新验证 / Recheck`。
+- 仍失败时再看 `~/Library/Application Support/CJLocalProxy/claude-local-proxy/logs/proxy.err.log`。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。

@@ -1851,6 +1851,55 @@ cd ../..
 
 Expected: Swift tests/builds pass；`.app` 可启动；`.app` 内包含 `ProxySetupApp_ProxySetupApp.bundle/ProxyBundle/*` 与 `Contents/Resources/AppIcon.icns`；自动化验证只启动 App，不点击真实安装，不写本机真实配置。
 
+### Task 16: 安装后验证重试与手动重新验证
+
+**Files:**
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Services/VerificationService.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/AppState.swift`
+- Modify: `macos/ProxySetupApp/Sources/ProxySetupApp/Views/VerificationResultsView.swift`
+- Modify: `macos/ProxySetupApp/Tests/ProxySetupAppTests/VerificationServiceTests.swift`
+- Modify: `macos/ProxySetupApp/Tests/ProxySetupAppTests/SmokeTests.swift`
+- Modify: `macos/ProxySetupApp/README.md`
+- Modify: `handoff.md`
+
+- [x] **Step 1: 写重试验证 tests**
+
+覆盖：
+
+- 前几次 curl 返回 `HTTP 000` / connection refused，后续返回 200 时，验证应最终通过。
+- 重试耗尽后，验证应保留 curl stderr，方便用户判断连接失败原因。
+- AppState 可在不重装的情况下触发重新验证，并更新安装状态与 proxy status。
+
+- [x] **Step 2: 实现验证重试**
+
+- `VerificationService.run` 新增 `attempts` 与 `retryDelayNanoseconds`。
+- 默认每个端点最多重试 8 次，间隔 0.5 秒。
+- curl 参数改为 `-skS --connect-timeout 2 --max-time 5`，既跳过本机自签证书校验，又能显示连接错误。
+
+- [x] **Step 3: 接入 UI**
+
+- 验证端点卡片新增 `重新验证 / Recheck`。
+- 执行安装区域新增 `重新验证 / Recheck`。
+- Recheck 只运行 health 验证，不重新安装、不重新写配置、不重新生成证书。
+
+- [x] **Step 4: 验证**
+
+Run:
+
+```bash
+cd macos/ProxySetupApp
+swift test
+swift build
+cd ../..
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+./script/build_and_run.sh --verify
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+```
+
+Expected: tests/builds pass；`.app` 可启动；自动化验证不触发真实安装。
+
 ## 自检清单
 
 - Spec 覆盖：
@@ -1867,6 +1916,7 @@ Expected: Swift tests/builds pass；`.app` 可启动；`.app` 内包含 `ProxySe
   - 本机安装编排与安全预览：Task 13 覆盖。
   - dry-run、备份、回滚、确认门禁：Task 14 覆盖。
   - 真实安装执行按钮、安装命令记录、AppIcon 和资源 bundle 打包：Task 15 覆盖。
+  - 安装后验证重试与手动 recheck：Task 16 覆盖。
 - 范围边界：
   - 不做远程 SSH。
   - 不做签名 `.pkg`。
@@ -1874,6 +1924,7 @@ Expected: Swift tests/builds pass；`.app` 可启动；`.app` 内包含 `ProxySe
   - Task 13 不执行真实 `launchctl`、`security add-trusted-cert` 或 `openssl`。
   - Task 14 不写真实用户配置；只做临时目录测试与 UI 只读预览。
   - Task 15 自动化测试只使用注入临时目录；真实安装必须由用户在 App 内完成检查和 `INSTALL` 门禁后手动触发。
+  - Task 16 只重试 health 验证；`Recheck` 不重装、不写配置、不动 Keychain。
   - 不记录 prompt、response、Authorization、Cookie 或真实 API Key。
 - 执行顺序：
   - Task 1 必须先执行，因为 App 的安全设计依赖代理能从 Keychain 读取真实上游 key。

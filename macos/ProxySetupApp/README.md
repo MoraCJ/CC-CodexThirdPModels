@@ -37,6 +37,7 @@ swift test
 - 安装安全层：支持脱敏 dry-run diff、backup manifest、带目标目录白名单的 rollback 和 `INSTALL` 确认门禁。
 - 验证页展示 dry-run diff、安装计划、安全边界和执行安装入口。
 - 完成配置检查、确认门禁并输入 `INSTALL` 后，App 可执行本机安装：备份 managed files、复制代理资源、写入客户端配置、生成证书、信任本机 CA、启动 LaunchAgent，并运行 health 验证。
+- 安装后的 health 验证会对 `HTTP 000` 等启动窗口期失败做重试；验证页也提供 `重新验证 / Recheck`，可在不重装的情况下重新检查端点。
 - Claude Desktop 配置写入 `~/Library/Application Support/Claude-3p/configLibrary/cj-local-proxy.json`、`_meta.json` 与 `claude_desktop_config.json`，Codex 顶层默认模型使用第一个 profile。
 - App bundle 打包脚本会复制 SwiftPM 资源 bundle 与 AppIcon。
 
