@@ -85,12 +85,14 @@ struct StatusDashboardView: View {
                     Label("打开 Dashboard / Open Dashboard", systemImage: "safari")
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.large)
 
                 Button {
                     appState.validateConfiguration()
                 } label: {
                     Label("检查配置 / Check Setup", systemImage: "checkmark.circle")
                 }
+                .controlSize(.large)
             }
         }
     }
@@ -100,7 +102,7 @@ struct StatusDashboardView: View {
             Text(label)
                 .foregroundStyle(.secondary)
             Text(value)
-                .font(.system(.body, design: .monospaced))
+                .font(.system(.title3, design: .monospaced))
                 .textSelection(.enabled)
         }
     }
@@ -118,13 +120,13 @@ private struct StatusCard: View {
                 .font(.title2)
                 .foregroundStyle(tint)
             Text(title)
-                .font(.caption)
+                .font(.callout)
                 .foregroundStyle(.secondary)
             Text(value)
-                .font(.headline)
+                .font(.title3.weight(.semibold))
                 .lineLimit(2)
         }
-        .padding(16)
+        .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.regularMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 8))

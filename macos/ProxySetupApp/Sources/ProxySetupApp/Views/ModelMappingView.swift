@@ -29,7 +29,7 @@ struct ModelMappingView: View {
                             VStack(alignment: .leading, spacing: 10) {
                                 HStack {
                                     Text(profile.name.isEmpty ? "未命名 Profile" : profile.name)
-                                        .font(.subheadline.weight(.semibold))
+                                        .font(.title3.weight(.semibold))
                                     Spacer()
                                     Button(role: .destructive) {
                                         removeProfile(profile.id)
@@ -47,12 +47,14 @@ struct ModelMappingView: View {
                                             .foregroundStyle(.secondary)
                                         TextField("ark-default", text: $profile.name)
                                             .textFieldStyle(.roundedBorder)
+                                            .controlSize(.large)
                                     }
                                     GridRow {
                                         Text("Model")
                                             .foregroundStyle(.secondary)
                                         TextField("model-name", text: $profile.model)
                                             .textFieldStyle(.roundedBorder)
+                                            .controlSize(.large)
                                     }
                                     GridRow {
                                         Text("Reasoning")
@@ -64,10 +66,12 @@ struct ModelMappingView: View {
                                         }
                                         .labelsHidden()
                                         .pickerStyle(.segmented)
+                                        .controlSize(.large)
                                     }
                                 }
+                                .font(.body)
                             }
-                            .padding(12)
+                            .padding(16)
                             .background(.thinMaterial)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
@@ -77,6 +81,7 @@ struct ModelMappingView: View {
                         } label: {
                             Label("添加 Profile / Add Profile", systemImage: "plus")
                         }
+                        .controlSize(.large)
                     }
                 }
             }
@@ -90,7 +95,9 @@ struct ModelMappingView: View {
                 .foregroundStyle(.secondary)
             TextField("\(label) upstream model", text: text)
                 .textFieldStyle(.roundedBorder)
+                .controlSize(.large)
         }
+        .font(.body)
     }
 
     private func addProfile() {

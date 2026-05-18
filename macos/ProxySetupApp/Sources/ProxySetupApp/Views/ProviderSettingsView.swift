@@ -49,6 +49,7 @@ struct ProviderSettingsView: View {
                                 .foregroundStyle(.secondary)
                             TextField("127.0.0.1", text: $config.listenHost)
                                 .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
                         }
                         GridRow {
                             Text("Port")
@@ -57,14 +58,17 @@ struct ProviderSettingsView: View {
                                 Text("\(config.listenPort)")
                                     .monospacedDigit()
                             }
+                            .controlSize(.large)
                         }
                         GridRow {
                             Text("Keychain")
                                 .foregroundStyle(.secondary)
                             TextField("CJLocalProxy", text: $config.keychainService)
                                 .textFieldStyle(.roundedBorder)
+                                .controlSize(.large)
                         }
                     }
+                    .font(.body)
                 }
             }
             .padding(.vertical, 4)
@@ -84,6 +88,7 @@ private struct ProviderEditor: View {
         VStack(alignment: .leading, spacing: 12) {
             Toggle("启用 / Enable", isOn: $isEnabled)
                 .toggleStyle(.switch)
+                .font(.title3.weight(.semibold))
 
             Picker("兼容类型 / Compatibility", selection: $protocolType) {
                 ForEach(ProviderProtocol.allCases) { item in
@@ -91,6 +96,7 @@ private struct ProviderEditor: View {
                 }
             }
             .pickerStyle(.segmented)
+            .controlSize(.large)
             .disabled(!isEnabled)
 
             Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
@@ -99,24 +105,28 @@ private struct ProviderEditor: View {
                         .foregroundStyle(.secondary)
                     TextField("https://provider.example.com/api", text: $baseURL)
                         .textFieldStyle(.roundedBorder)
+                        .controlSize(.large)
                 }
                 GridRow {
                     Text("API Key")
                         .foregroundStyle(.secondary)
                     SecureField(keyPlaceholder, text: $apiKey)
                         .textFieldStyle(.roundedBorder)
+                        .controlSize(.large)
                 }
                 GridRow {
                     Text("Keychain")
                         .foregroundStyle(.secondary)
                     TextField("account", text: $keychainAccount)
                         .textFieldStyle(.roundedBorder)
+                        .controlSize(.large)
                 }
             }
+            .font(.body)
             .disabled(!isEnabled)
 
             Text("保存时只写入 macOS Keychain；客户端配置只使用本地占位 token。")
-                .font(.caption)
+                .font(.callout)
                 .foregroundStyle(.secondary)
         }
     }

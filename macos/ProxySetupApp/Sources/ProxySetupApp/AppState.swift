@@ -12,6 +12,7 @@ final class AppState: ObservableObject {
     @Published var validationMessage: String = "尚未验证 / Not validated"
     @Published var keychainStatusMessage: String = "尚未保存 / Not saved"
     @Published var keychainWriteConfirmation = KeychainWriteConfirmation()
+    @Published var hasValidatedConfiguration = false
 
     enum Section: String, CaseIterable, Identifiable, Hashable {
         case status
@@ -104,9 +105,10 @@ final class AppState: ObservableObject {
     }
 
     func validateConfiguration() {
+        hasValidatedConfiguration = true
         do {
             try setupConfiguration.validate()
-            validationMessage = "配置可用 / Configuration looks valid"
+            validationMessage = "配置可用，可以继续查看验证预览 / Configuration looks valid"
         } catch {
             validationMessage = "配置需要调整 / \(error.localizedDescription)"
         }
@@ -153,6 +155,28 @@ final class AppState: ObservableObject {
 
     var canSaveProviderKeys: Bool {
         hasPendingProviderKey && keychainWriteConfirmation.canSave
+    }
+
+    var saveKeysDisabledReason: String {
+        if !hasPendingProviderKey {
+            return keychainStatusMessage.contains("已保存")
+                ? "已保存；如需替换，请重新粘贴 API Key。"
+                : "请输入至少一个 API Key。"
+        }
+        if !keychainWriteConfirmation.reviewedAccounts {
+            return "请先勾选已核对账号。"
+        }
+        if !keychainWriteConfirmation.understandsKeychainWrite {
+            return "请确认写入 macOS Keychain。"
+        }
+        if keychainWriteConfirmation.typedPhrase != "KEYCHAIN" {
+            return "请输入大写 KEYCHAIN 解锁保存。"
+        }
+        return "可以保存到 Keychain。"
+    }
+
+    var isKeychainSaved: Bool {
+        keychainStatusMessage.contains("已保存")
     }
 }
 

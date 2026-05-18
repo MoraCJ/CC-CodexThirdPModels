@@ -7,10 +7,12 @@ struct RootView: View {
         NavigationSplitView {
             List(AppState.Section.allCases, selection: $appState.selectedSection) { section in
                 Label(section.title, systemImage: section.systemImage)
+                    .font(.title3.weight(.semibold))
+                    .padding(.vertical, 4)
                     .tag(section)
             }
             .listStyle(.sidebar)
-            .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
+            .navigationSplitViewColumnWidth(min: 250, ideal: 280, max: 320)
             .safeAreaInset(edge: .bottom) {
                 VStack(alignment: .leading, spacing: 8) {
                     InfoBadge(
@@ -19,10 +21,10 @@ struct RootView: View {
                         tint: .green
                     )
                     Text("真实 API Key 只进入 Keychain。")
-                        .font(.caption)
+                        .font(.callout)
                         .foregroundStyle(.secondary)
                 }
-                .padding(14)
+                .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         } detail: {

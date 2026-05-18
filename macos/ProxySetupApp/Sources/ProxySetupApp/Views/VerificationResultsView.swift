@@ -35,14 +35,14 @@ struct VerificationResultsView: View {
                                     Label(check.name, systemImage: "circle.dashed")
                                         .foregroundStyle(.secondary)
                                     Text(check.url?.absoluteString ?? "")
-                                        .font(.system(.body, design: .monospaced))
+                                        .font(.system(.title3, design: .monospaced))
                                         .lineLimit(1)
                                         .textSelection(.enabled)
                                 }
                                 GridRow {
                                     Text("")
                                     Text(check.detail)
-                                        .font(.caption)
+                                        .font(.callout)
                                         .foregroundStyle(.secondary)
                                 }
                             }
@@ -87,9 +87,9 @@ struct VerificationResultsView: View {
                             ForEach(items) { item in
                                 VStack(alignment: .leading, spacing: 3) {
                                     Text(item.title)
-                                        .font(.subheadline.weight(.medium))
+                                        .font(.headline)
                                     Text(item.detail)
-                                        .font(.caption)
+                                        .font(.callout)
                                         .foregroundStyle(.secondary)
                                         .lineLimit(2)
                                         .textSelection(.enabled)
@@ -103,7 +103,7 @@ struct VerificationResultsView: View {
                             )
                             .foregroundStyle(.orange)
                             Text(error.localizedDescription)
-                                .font(.caption)
+                                .font(.callout)
                                 .foregroundStyle(.secondary)
                                 .textSelection(.enabled)
                         }
@@ -136,7 +136,7 @@ struct VerificationResultsView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
                                         Text(diff.change.title)
-                                            .font(.subheadline.weight(.medium))
+                                            .font(.headline)
                                         InfoBadge(
                                             text: diff.kind.rawValue,
                                             systemImage: diffIcon(diff.kind),
@@ -144,12 +144,12 @@ struct VerificationResultsView: View {
                                         )
                                     }
                                     Text(diff.change.targetURL.path)
-                                        .font(.caption)
+                                        .font(.callout)
                                         .foregroundStyle(.secondary)
                                         .lineLimit(1)
                                         .textSelection(.enabled)
                                     Text(diff.preview)
-                                        .font(.system(.caption, design: .monospaced))
+                                        .font(.system(.callout, design: .monospaced))
                                         .foregroundStyle(.secondary)
                                         .lineLimit(6)
                                         .textSelection(.enabled)
@@ -163,7 +163,7 @@ struct VerificationResultsView: View {
                             )
                             .foregroundStyle(.orange)
                             Text(error.localizedDescription)
-                                .font(.caption)
+                                .font(.callout)
                                 .foregroundStyle(.secondary)
                                 .textSelection(.enabled)
                         }
@@ -179,9 +179,9 @@ struct VerificationResultsView: View {
                         ForEach(InstallationConfirmation.requirements) { item in
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(item.title)
-                                    .font(.subheadline.weight(.medium))
+                                    .font(.headline)
                                 Text(item.detail)
-                                    .font(.caption)
+                                    .font(.callout)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -242,7 +242,7 @@ struct VerificationResultsView: View {
             Image(systemName: "checkmark.shield")
                 .foregroundStyle(.green)
             Text(text)
-                .font(.caption)
+                .font(.callout)
                 .foregroundStyle(.secondary)
         }
     }
@@ -253,7 +253,7 @@ struct VerificationResultsView: View {
                 Text(label)
                     .foregroundStyle(.secondary)
                 Text(command.joined(separator: " "))
-                    .font(.system(.body, design: .monospaced))
+                    .font(.system(.title3, design: .monospaced))
                     .lineLimit(1)
                     .textSelection(.enabled)
             }
@@ -265,7 +265,7 @@ struct VerificationResultsView: View {
             Text(label)
                 .foregroundStyle(.secondary)
             Text(value)
-                .font(.system(.body, design: .monospaced))
+                .font(.system(.title3, design: .monospaced))
                 .textSelection(.enabled)
         }
     }
@@ -273,9 +273,9 @@ struct VerificationResultsView: View {
     private func previewText(_ text: String) -> some View {
         ScrollView(.horizontal) {
             Text(text)
-                .font(.system(.caption, design: .monospaced))
+                .font(.system(.callout, design: .monospaced))
                 .textSelection(.enabled)
-                .padding(10)
+                .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxHeight: 180)
