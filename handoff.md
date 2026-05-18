@@ -1,6 +1,6 @@
 # Claude Code Desktop 第三方 API 接入 Handoff
 
-更新时间：2026-05-16
+更新时间：2026-05-18
 
 本文记录本次会话在项目 `/Users/chjia/Documents/Codex/2026-05-11/claude-code-app-api` 中完成的工作、当前架构决策、已知问题与后续运行/测试方式。本文不包含真实 API key、token、密码或私钥内容。
 
@@ -586,13 +586,61 @@ open ProxySetupApp.app
 - 当前 App 仍是安全预览阶段，不自动执行 `launchctl`、`security add-trusted-cert` 或 `openssl`。
 - 当前 App 不自动写真实 Claude/Codex 配置或真实 `~/Library/LaunchAgents`。
 
+### 0.2.19 测试机反馈修复：字体、按钮反馈与提示可见性
+
+本轮根据测试机截图反馈，完成一次 UX polish。目标是解决“字体偏小、按键反馈弱、提示不明显”的问题，不改变安装安全边界。
+
+源码提交：
+
+- `e762700 feat: polish macos setup feedback`
+
+改进内容：
+
+- 放大侧栏、面板标题、说明文字、输入框、按钮和验证页 monospaced 内容。
+- 设置向导顶部新增两张明显状态卡：
+  - 配置检查状态。
+  - Keychain 保存状态。
+- `检查配置 / Check` 后不再只改底部小字，而是在状态卡和右上角 badge 同步显示结果。
+- `保存 Key / Save Keys` 不可点击时，底部直接显示原因：
+  - 未输入 API Key。
+  - 未勾选账号确认。
+  - 未确认写入 Keychain。
+  - 未输入大写 `KEYCHAIN`。
+- Keychain 确认区改成独立提示条，并把输入框 placeholder 改成 `输入大写 KEYCHAIN / Type KEYCHAIN`。
+- 保存成功后继续清空 API Key 输入框，但顶部 Keychain 状态卡会显示已保存。
+
+安全确认：
+
+- 没有新增真实安装执行路径。
+- 没有自动写 Claude/Codex 配置、LaunchAgent 或证书信任。
+- 没有修改 Keychain 写入门禁；仍需两个确认框和大写 `KEYCHAIN`。
+
+验证与打包：
+
+```bash
+cd macos/ProxySetupApp && swift test
+cd macos/ProxySetupApp && swift build
+./script/build_and_run.sh --verify
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-UX-e762700-20260518.zip
+ditto -x -k dist/ProxySetupApp-UX-e762700-20260518.zip /tmp/proxysetupapp-ux-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-ux-package-check/ProxySetupApp.app
+```
+
+新测试包：
+
+- `dist/ProxySetupApp-UX-e762700-20260518.zip`
+- zip 大小：约 `525K`。
+- SHA256：`d7e48973c38f25ccb9a472a4ee8751cfa0a5a3ceb53c6b6fd8bcc816a3c1fbab`。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。
 - Task 14 开发 worktree：`/Users/chjia/Coding/CC-CodexThirdPModels/.worktrees/macos-install-safety`。
 - Task 14 实现分支：`feature/macos-install-safety`。
 - Remote：`git@github.com:MoraCJ/CC-CodexThirdPModels.git`。
-- `main` 已推送到 `origin/main`，当前远端最新提交为 `42ee911`。
+- `main` 已推送到 `origin/main`。
 - `dist/` 构建产物被 `.gitignore` 忽略，不提交测试 zip。
 
 ## 0A. 最新补充：Usage Dashboard 与客户端来源区分
