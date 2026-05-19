@@ -1,6 +1,6 @@
 # CJ Local Proxy macOS App 操作手册
 
-适用版本：`ProxySetupApp-T17-StartRestore-20260519`
+适用版本：`ProxySetupApp-T18-FlowStreaming-20260519`
 
 本手册用于在一台 macOS 测试机或新电脑上，通过 `CJ Local Proxy` App 配置 Claude Code Desktop/CLI 与 Codex App/CLI 使用本机 HTTPS 代理访问第三方模型服务商，并在需要时一键还原回官方服务。
 
@@ -19,13 +19,13 @@
 当前测试包：
 
 ```text
-dist/ProxySetupApp-T17-StartRestore-20260519.zip
+dist/ProxySetupApp-T18-FlowStreaming-20260519.zip
 ```
 
 SHA256：
 
 ```text
-fa76e45cf4c7e68c0854e5108b3581d71dc99f5f8d222aac77d6d21cf8c15c4b
+5f6ed4922b46810eeaf66eab5e9a6a41ba99457a7607da5df41dedccb3a7f1fd
 ```
 
 复制到测试机后解压，得到：
@@ -46,22 +46,23 @@ open ProxySetupApp.app
 App 打开后默认进入左侧菜单的：
 
 ```text
-启动配置 / Start
+状态 / Status
 ```
 
 常用页面：
 
-- `启动配置 / Start`：检查配置、安装启动、重新验证、打开 dashboard、还原官方服务。
-- `设置向导 / Setup`：填写 Base URL、API Key、Keychain account、模型映射。
-- `状态 / Status`：查看代理状态、LaunchAgent、证书、客户端路径。
-- `日志 / Logs`：预留日志入口。
+- `状态 / Status`：查看代理状态、LaunchAgent、证书、客户端路径和 token 用量摘要。
+- `设置 / Settings`：填写 Base URL、API Key、Keychain account、模型映射。
+- `启动配置 / Start`：检查依赖、配置本机代理 host/port、安装启动、重新验证。
+- `还原配置 / Restore`：把 Claude 与 Codex 还原到官方默认服务。
+- `日志 / Logs`：查看安装日志、还原日志和代理运行日志。
 
 ## 3. 填写服务商与 Key
 
 进入左侧：
 
 ```text
-设置向导 / Setup
+设置 / Settings
 ```
 
 ### 3.1 Provider 页面
@@ -84,7 +85,13 @@ Codex 区域：
 - `API Key`：粘贴 Codex 上游 provider key。保存后 App 会清空明文输入框。
 - `Keychain`：通常保留默认 `codex-upstream-api-key`。
 
-底部 `Local Proxy`：
+本机代理 `Host`、`Port`、`Keychain service` 已移动到左侧：
+
+```text
+启动配置 / Start
+```
+
+默认值：
 
 - `Host`：默认 `127.0.0.1`。
 - `Port`：默认 `38443`。
@@ -124,7 +131,7 @@ macOS 弹出 Keychain 授权窗口时：
 
 ## 4. 配置模型
 
-进入 `设置向导 / Setup` 的：
+进入 `设置 / Settings` 的：
 
 ```text
 模型 / Models
@@ -173,12 +180,14 @@ Codex 当前实际默认使用一个顶层模型。App 中第一个 Codex profil
 通过信号：
 
 - 按钮或状态提示变成绿色。
-- 提示类似 `配置可用 / Configuration looks valid`。
+- 提示类似 `配置与必需依赖可用 / Configuration and required dependencies look valid`。
+- `外部依赖 / External Dependencies` 会显示 `node`、`npm`、`brew`、`claude`、`codex` 的真实路径或缺失提示。
 
 未通过时：
 
 - 根据橙色提示修正 Base URL、端口、模型名或 provider 启用状态。
 - Base URL 必须是 `https://` 开头。
+- `node` 是必需依赖，缺失时不能安装；`npm`、`brew`、`claude`、`codex` 缺失只会警告，不阻断代理安装。
 
 ## 6. 安装并启动代理
 
@@ -217,6 +226,16 @@ INSTALL
 - 启动代理并验证 health 端点。
 
 macOS 可能再次要求 Keychain 或证书信任授权，输入当前 Mac 登录密码即可。
+
+安装过程中 App 会实时显示：
+
+- 当前步骤。
+- 正在执行的命令。
+- 成功、失败、跳过状态。
+- 命令耗时。
+- 正在验证的 endpoint。
+
+正常安装通常应在几十秒内完成。若某一步失败，不需要猜测卡在哪里，直接查看页面中的 `当前进度 / Live Progress` 或左侧 `日志 / Logs`。
 
 成功信号：
 
@@ -377,9 +396,9 @@ RESTORE
 
 如果仍失败，检查：
 
+优先进入 `日志 / Logs` 查看 `proxy.err.log`、`proxy.log` 和安装日志；也可以在终端执行：
+
 ```bash
-tail -n 120 "$HOME/Library/Application Support/CJLocalProxy/claude-local-proxy/logs/proxy.err.log"
-tail -n 120 "$HOME/Library/Application Support/CJLocalProxy/claude-local-proxy/logs/proxy.log"
 launchctl print gui/$(id -u)/com.cj.claude-local-https-proxy
 ```
 
@@ -396,7 +415,7 @@ launchctl print gui/$(id -u)/com.cj.claude-local-https-proxy
 
 流程：
 
-1. 到 `设置向导 / Setup` 修改 Base URL、Key、模型。
+1. 到 `设置 / Settings` 修改 Base URL、Key、模型。
 2. 保存新的 Key。
 3. 点击 `检查配置 / Check`。
 4. 输入 `INSTALL` 后重新执行 `Install & Start`。

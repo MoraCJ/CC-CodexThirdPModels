@@ -29,6 +29,21 @@ struct VerificationSummary: Equatable {
     }
 }
 
+enum VerificationProgressStatus: Equatable {
+    case running
+    case passed
+    case failed
+}
+
+struct VerificationProgressEvent: Equatable {
+    var name: String
+    var url: URL?
+    var status: VerificationProgressStatus
+    var detail: String
+}
+
+typealias VerificationProgressHandler = (VerificationProgressEvent) async -> Void
+
 struct VerificationService {
     static func pendingSummary(config: SetupConfiguration) -> VerificationSummary {
         let names = [
@@ -67,8 +82,9 @@ struct VerificationService {
     func run(
         config: SetupConfiguration,
         runner: CommandRunning = CommandRunner(),
-        attempts: Int = 8,
-        retryDelayNanoseconds: UInt64 = 500_000_000
+        attempts: Int = 3,
+        retryDelayNanoseconds: UInt64 = 500_000_000,
+        progress: VerificationProgressHandler? = nil
     ) async -> VerificationSummary {
         let names = [
             "Proxy health",
@@ -85,7 +101,8 @@ struct VerificationService {
                 url: url,
                 runner: runner,
                 attempts: attempts,
-                retryDelayNanoseconds: retryDelayNanoseconds
+                retryDelayNanoseconds: retryDelayNanoseconds,
+                progress: progress
             )
         }
         return VerificationSummary(checks: checks)
@@ -96,18 +113,28 @@ struct VerificationService {
         url: URL,
         runner: CommandRunning,
         attempts: Int,
-        retryDelayNanoseconds: UInt64
+        retryDelayNanoseconds: UInt64,
+        progress: VerificationProgressHandler?
     ) async -> VerificationCheck {
         let maxAttempts = max(1, attempts)
         var lastResult = CommandResult(exitCode: 127, stdout: "", stderr: "not run")
+
+        await progress?(
+            VerificationProgressEvent(
+                name: name,
+                url: url,
+                status: .running,
+                detail: "正在检查 / Checking"
+            )
+        )
 
         for attempt in 1...maxAttempts {
             let result = await runner.run(
                 "curl",
                 [
                     "-skS",
-                    "--connect-timeout", "2",
-                    "--max-time", "5",
+                    "--connect-timeout", "1",
+                    "--max-time", "2",
                     "-o", "/dev/null",
                     "-w", "%{http_code}",
                     url.absoluteString,
@@ -117,12 +144,21 @@ struct VerificationService {
 
             let code = result.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
             if result.exitCode == 0 && (code.hasPrefix("2") || code.hasPrefix("3")) {
-                return VerificationCheck(
+                let check = VerificationCheck(
                     name: name,
                     url: url,
                     status: .passed,
                     detail: maxAttempts == 1 ? "HTTP \(code)" : "HTTP \(code) / attempt \(attempt)"
                 )
+                await progress?(
+                    VerificationProgressEvent(
+                        name: name,
+                        url: url,
+                        status: .passed,
+                        detail: check.detail
+                    )
+                )
+                return check
             }
 
             if attempt < maxAttempts, retryDelayNanoseconds > 0 {
@@ -133,12 +169,21 @@ struct VerificationService {
         let code = lastResult.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
         let detail = lastResult.stderr.trimmingCharacters(in: .whitespacesAndNewlines)
         let reason = detail.isEmpty ? "HTTP \(code.isEmpty ? "000" : code)" : detail
-        return VerificationCheck(
+        let check = VerificationCheck(
             name: name,
             url: url,
             status: .failed,
             detail: "失败 / \(reason)"
         )
+        await progress?(
+            VerificationProgressEvent(
+                name: name,
+                url: url,
+                status: .failed,
+                detail: check.detail
+            )
+        )
+        return check
     }
 }
 

@@ -1,6 +1,6 @@
 # Claude Code Desktop 第三方 API 接入 Handoff
 
-更新时间：2026-05-18
+更新时间：2026-05-19
 
 本文记录本次会话在项目 `/Users/chjia/Documents/Codex/2026-05-11/claude-code-app-api` 中完成的工作、当前架构决策、已知问题与后续运行/测试方式。本文不包含真实 API key、token、密码或私钥内容。
 
@@ -1032,6 +1032,62 @@ v24.15.0
   - 验证每个 endpoint。
 - UI 需要展示实时命令日志和当前步骤，避免用户只看到“正在安装”。
 - 外部命令 runner 需要 timeout 与更明确错误提示。
+
+### 0.2.27 T18 完成记录：依赖探测、流式安装与五栏流程
+
+本轮已按测试机反馈完成 macOS 设置 App 整改。
+
+关键修复：
+
+- `PreflightService` 现在探测 `node`、`npm`、`brew`、`claude`、`codex` 的真实路径和版本信息。
+- `node` 是必需依赖，缺失时 `检查配置 / Check` 不通过，安装按钮保持禁用；`npm`、`brew`、`claude`、`codex` 缺失只显示橙色警告。
+- `InstallationEnvironment.defaultEnvironment()` 不再写死 `/opt/homebrew/bin/node`；真实安装会先解析 Node 路径，并把解析结果写入 LaunchAgent plist。
+- 新增集成测试覆盖：当环境未传 Node 路径时，安装服务解析 `/usr/local/bin/node` 并写入 plist，防止测试机 `EX_CONFIG` 问题复发。
+- `CommandRunner` 增加 timeout，`launchctl` 等外部命令不会无限等待。
+- `InstallationExecutionService`、`VerificationService`、`FactoryRestoreService` 支持 progress callback；UI 可实时显示当前步骤、命令、耗时、成功/失败/跳过状态。
+- `VerificationService` 默认验证耗时收紧为 3 次尝试，`curl` 使用 `--connect-timeout 1 --max-time 2`，失败时更快暴露具体 endpoint。
+
+界面调整：
+
+- 左侧导航固定为：
+  - `状态 / Status`
+  - `设置 / Settings`
+  - `启动配置 / Start`
+  - `还原配置 / Restore`
+  - `日志 / Logs`
+- `状态 / Status`：展示代理状态、LaunchAgent、证书、准备状态、客户端分流路径，并内置读取 `/telemetry/summary` 的 token 用量摘要。
+- `设置 / Settings`：只保留服务商设置和模型设置。
+- `启动配置 / Start`：放置依赖探测、本机代理 host/port/keychain、安装启动、重新验证、客户端路径。
+- `还原配置 / Restore`：独立承载 `RESTORE` 门禁与原厂服务还原。
+- `日志 / Logs`：展示本次安装/还原进度与命令记录，并只读 tail `proxy.log`、`proxy.err.log`、`telemetry.jsonl`。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+./script/build_and_run.sh --verify
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-T18-FlowStreaming-20260519.zip
+ditto -x -k dist/ProxySetupApp-T18-FlowStreaming-20260519.zip /tmp/proxysetupapp-t18-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t18-package-check/ProxySetupApp.app
+```
+
+新测试包：
+
+- `dist/ProxySetupApp-T18-FlowStreaming-20260519.zip`
+- zip 大小：约 `2.7M`。
+- SHA256：`5f6ed4922b46810eeaf66eab5e9a6a41ba99457a7607da5df41dedccb3a7f1fd`。
+
+安全备注：
+
+- 本轮自动化测试没有写本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、真实 LaunchAgent 或生产 Keychain。
+- `./script/build_and_run.sh --verify` 只启动 App，不点击真实安装或还原。
+- `dist/` 构建产物仍被 `.gitignore` 忽略，不提交 zip。
 
 ### 0.3 Git 状态
 

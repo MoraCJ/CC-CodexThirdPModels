@@ -3,23 +3,34 @@ import Foundation
 
 @MainActor
 final class AppState: ObservableObject {
-    typealias InstallationExecutor = (SetupConfiguration, InstallationConfirmation) async throws -> InstallationExecutionResult
+    typealias InstallationExecutor = (
+        SetupConfiguration,
+        InstallationConfirmation,
+        InstallationProgressHandler?
+    ) async throws -> InstallationExecutionResult
     typealias VerificationExecutor = (SetupConfiguration) async -> VerificationSummary
-    typealias FactoryRestoreExecutor = (SetupConfiguration, FactoryRestoreConfirmation) async throws -> FactoryRestoreResult
+    typealias FactoryRestoreExecutor = (
+        SetupConfiguration,
+        FactoryRestoreConfirmation,
+        InstallationProgressHandler?
+    ) async throws -> FactoryRestoreResult
 
     @Published var proxyStatusLabel: String = "未检测 / Not Checked"
     @Published var setupConfiguration: SetupConfiguration = .default
-    @Published var selectedSection: Section? = .start
+    @Published var selectedSection: Section? = .status
     @Published var selectedSetupTab: SetupTab = .provider
     @Published var claudeAPIKey: String = ""
     @Published var codexAPIKey: String = ""
     @Published var validationMessage: String = "尚未验证 / Not validated"
+    @Published var toolCheckResult: ToolCheckResult?
+    @Published var isCheckingConfiguration = false
     @Published var keychainStatusMessage: String = "尚未保存 / Not saved"
     @Published var keychainWriteConfirmation = KeychainWriteConfirmation()
     @Published var hasValidatedConfiguration = false
     @Published var installationConfirmation = InstallationConfirmation()
     @Published var installationStatusMessage: String = "尚未安装 / Not installed"
     @Published var installationCommandRecords: [InstallationCommandRecord] = []
+    @Published var installationProgressEvents: [InstallationProgressEvent] = []
     @Published var installationVerificationSummary: VerificationSummary?
     @Published var backupManifestPath: String?
     @Published var isInstalling = false
@@ -27,27 +38,33 @@ final class AppState: ObservableObject {
     @Published var factoryRestoreConfirmation = FactoryRestoreConfirmation()
     @Published var factoryRestoreStatusMessage: String = "尚未还原 / Not restored"
     @Published var factoryRestoreCommandRecords: [InstallationCommandRecord] = []
+    @Published var factoryRestoreProgressEvents: [InstallationProgressEvent] = []
     @Published var factoryRestoreBackupManifestPath: String?
     @Published var isRestoringFactoryDefaults = false
+    @Published var telemetrySnapshot: TelemetrySnapshot?
+    @Published var telemetryStatusMessage: String = "尚未读取用量 / Usage not loaded"
+    @Published var isRefreshingTelemetry = false
 
     private let installationExecutor: InstallationExecutor
     private let verificationExecutor: VerificationExecutor
     private let factoryRestoreExecutor: FactoryRestoreExecutor
 
     init(
-        installationExecutor: @escaping InstallationExecutor = { config, confirmation in
+        installationExecutor: @escaping InstallationExecutor = { config, confirmation, progress in
             try await InstallationExecutionService().execute(
                 config: config,
-                confirmation: confirmation
+                confirmation: confirmation,
+                progress: progress
             )
         },
         verificationExecutor: @escaping VerificationExecutor = { config in
             await VerificationService().run(config: config)
         },
-        factoryRestoreExecutor: @escaping FactoryRestoreExecutor = { config, confirmation in
+        factoryRestoreExecutor: @escaping FactoryRestoreExecutor = { config, confirmation, progress in
             try await FactoryRestoreService().restore(
                 config: config,
-                confirmation: confirmation
+                confirmation: confirmation,
+                progress: progress
             )
         }
     ) {
@@ -57,9 +74,10 @@ final class AppState: ObservableObject {
     }
 
     enum Section: String, CaseIterable, Identifiable, Hashable {
-        case start
         case status
-        case setup
+        case settings
+        case start
+        case restore
         case logs
 
         var id: String { rawValue }
@@ -67,8 +85,9 @@ final class AppState: ObservableObject {
         var title: String {
             switch self {
             case .status: return "状态 / Status"
+            case .settings: return "设置 / Settings"
             case .start: return "启动配置 / Start"
-            case .setup: return "设置向导 / Setup"
+            case .restore: return "还原配置 / Restore"
             case .logs: return "日志 / Logs"
             }
         }
@@ -76,8 +95,9 @@ final class AppState: ObservableObject {
         var systemImage: String {
             switch self {
             case .status: return "gauge.with.dots.needle.67percent"
+            case .settings: return "slider.horizontal.3"
             case .start: return "power.circle.fill"
-            case .setup: return "wand.and.stars"
+            case .restore: return "arrow.uturn.backward.circle.fill"
             case .logs: return "doc.text.magnifyingglass"
             }
         }
@@ -86,7 +106,6 @@ final class AppState: ObservableObject {
     enum SetupTab: String, CaseIterable, Identifiable {
         case provider
         case models
-        case verify
 
         var id: String { rawValue }
 
@@ -94,7 +113,6 @@ final class AppState: ObservableObject {
             switch self {
             case .provider: return "服务商 / Provider"
             case .models: return "模型 / Models"
-            case .verify: return "验证 / Verify"
             }
         }
 
@@ -102,7 +120,6 @@ final class AppState: ObservableObject {
             switch self {
             case .provider: return "network"
             case .models: return "slider.horizontal.3"
-            case .verify: return "checkmark.seal"
             }
         }
     }
@@ -116,7 +133,7 @@ final class AppState: ObservableObject {
     }
 
     var readinessItems: [ReadinessItem] {
-        [
+        var items = [
             ReadinessItem(
                 title: "Claude Provider",
                 detail: setupConfiguration.claudeProvider.isEnabled
@@ -142,11 +159,36 @@ final class AppState: ObservableObject {
                 isReady: isConfigurationValid
             ),
         ]
+        if let toolCheckResult {
+            items.append(
+                ReadinessItem(
+                    title: "Node",
+                    detail: toolCheckResult.node.path.isEmpty
+                        ? toolCheckResult.node.detail
+                        : "\(toolCheckResult.node.path) \(toolCheckResult.node.version)",
+                    isReady: toolCheckResult.node.status == .ok
+                )
+            )
+        }
+        return items
     }
 
     func openDashboard() {
         guard let url = URL(string: "https://127.0.0.1:38443/dashboard") else { return }
         NSWorkspace.shared.open(url)
+    }
+
+    func refreshTelemetrySummary() async {
+        guard !isRefreshingTelemetry else { return }
+        isRefreshingTelemetry = true
+        do {
+            let snapshot = try await TelemetryService().fetchSummary(config: setupConfiguration)
+            telemetrySnapshot = snapshot
+            telemetryStatusMessage = "已更新 / Updated: \(snapshot.generatedAt)"
+        } catch {
+            telemetryStatusMessage = "读取失败 / \(error.localizedDescription)"
+        }
+        isRefreshingTelemetry = false
     }
 
     func validateConfiguration() {
@@ -157,6 +199,22 @@ final class AppState: ObservableObject {
         } catch {
             validationMessage = "配置需要调整 / \(error.localizedDescription)"
         }
+    }
+
+    func checkConfiguration() async {
+        isCheckingConfiguration = true
+        hasValidatedConfiguration = true
+        do {
+            try setupConfiguration.validate()
+            let tools = await PreflightService(runner: CommandRunner()).checkTools()
+            toolCheckResult = tools
+            validationMessage = tools.requiredToolsReady
+                ? "配置与必需依赖可用 / Configuration and required dependencies look valid"
+                : "缺少必需依赖 node；请先安装 Node.js 或修正 PATH。"
+        } catch {
+            validationMessage = "配置需要调整 / \(error.localizedDescription)"
+        }
+        isCheckingConfiguration = false
     }
 
     func saveProviderKeysToKeychain() {
@@ -227,6 +285,7 @@ final class AppState: ObservableObject {
     var canRunInstallation: Bool {
         hasValidatedConfiguration &&
             isConfigurationValid &&
+            (toolCheckResult?.requiredToolsReady == true) &&
             installationConfirmation.canProceed &&
             !isInstalling
     }
@@ -240,6 +299,9 @@ final class AppState: ObservableObject {
         }
         if !isConfigurationValid {
             return "请先修正配置错误。"
+        }
+        if toolCheckResult?.requiredToolsReady != true {
+            return "请先点击检查配置，并确保 Node 可用。"
         }
         if !installationConfirmation.reviewedDryRun {
             return "请先确认已查看差异预览。"
@@ -290,11 +352,20 @@ final class AppState: ObservableObject {
         isInstalling = true
         installationStatusMessage = "正在安装并启动代理 / Installing and starting proxy..."
         installationCommandRecords = []
+        installationProgressEvents = []
         installationVerificationSummary = nil
         backupManifestPath = nil
 
         do {
-            let result = try await installationExecutor(setupConfiguration, installationConfirmation)
+            let result = try await installationExecutor(
+                setupConfiguration,
+                installationConfirmation
+            ) { [weak self] event in
+                await MainActor.run {
+                    self?.installationProgressEvents.append(event)
+                    self?.installationStatusMessage = event.status.userFacingPrefix + event.title
+                }
+            }
             installationCommandRecords = result.commandRecords
             installationVerificationSummary = result.verificationSummary
             backupManifestPath = result.backupResult.manifestURL.path
@@ -339,13 +410,19 @@ final class AppState: ObservableObject {
         isRestoringFactoryDefaults = true
         factoryRestoreStatusMessage = "正在还原官方服务配置 / Restoring official defaults..."
         factoryRestoreCommandRecords = []
+        factoryRestoreProgressEvents = []
         factoryRestoreBackupManifestPath = nil
 
         do {
             let result = try await factoryRestoreExecutor(
                 setupConfiguration,
                 factoryRestoreConfirmation
-            )
+            ) { [weak self] event in
+                await MainActor.run {
+                    self?.factoryRestoreProgressEvents.append(event)
+                    self?.factoryRestoreStatusMessage = event.status.userFacingPrefix + event.title
+                }
+            }
             factoryRestoreCommandRecords = result.commandRecords
             factoryRestoreBackupManifestPath = result.backupResult.manifestURL.path
             installationVerificationSummary = nil
@@ -357,6 +434,21 @@ final class AppState: ObservableObject {
         }
 
         isRestoringFactoryDefaults = false
+    }
+}
+
+private extension InstallationProgressStatus {
+    var userFacingPrefix: String {
+        switch self {
+        case .running:
+            return "正在执行 / Running: "
+        case .succeeded:
+            return "完成 / Done: "
+        case .failed:
+            return "失败 / Failed: "
+        case .skipped:
+            return "跳过 / Skipped: "
+        }
     }
 }
 

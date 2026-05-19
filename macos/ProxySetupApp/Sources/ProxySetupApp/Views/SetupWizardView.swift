@@ -25,8 +25,6 @@ struct SetupWizardView: View {
                     )
                 case .models:
                     ModelMappingView(config: $appState.setupConfiguration)
-                case .verify:
-                    VerificationResultsView(config: appState.setupConfiguration)
                 }
             }
             .padding(.horizontal, 24)
@@ -38,9 +36,9 @@ struct SetupWizardView: View {
     private var header: some View {
         HStack(alignment: .top, spacing: 18) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("本机代理设置 / Local Proxy Setup")
+                Text("设置 / Settings")
                     .font(.title.bold())
-                Text("输入 Base URL、API Key 和模型名；真实 Key 只保存到 macOS Keychain。")
+                Text("配置服务商 Base URL、API Key 和模型名；真实 Key 只保存到 macOS Keychain。")
                     .font(.title3)
                     .foregroundStyle(.secondary)
             }
@@ -125,7 +123,9 @@ struct SetupWizardView: View {
 
             HStack(spacing: 12) {
                 Button {
-                    appState.validateConfiguration()
+                    Task {
+                        await appState.checkConfiguration()
+                    }
                 } label: {
                     Label("检查配置 / Check", systemImage: checkButtonIcon)
                 }

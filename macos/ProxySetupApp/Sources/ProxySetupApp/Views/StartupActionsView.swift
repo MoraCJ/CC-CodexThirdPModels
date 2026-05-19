@@ -91,6 +91,7 @@ struct InstallStartControlsView: View {
                     .textSelection(.enabled)
             }
 
+            ProgressEventsView(events: appState.installationProgressEvents)
             CommandRecordsView(records: appState.installationCommandRecords)
         }
     }
@@ -200,6 +201,7 @@ struct FactoryRestoreControlsView: View {
                     .textSelection(.enabled)
             }
 
+            ProgressEventsView(events: appState.factoryRestoreProgressEvents)
             CommandRecordsView(records: appState.factoryRestoreCommandRecords)
         }
     }
@@ -223,7 +225,7 @@ struct FactoryRestoreControlsView: View {
     }
 }
 
-private struct StatusCallout: View {
+struct StatusCallout: View {
     let text: String
     let systemImage: String
     let tint: Color
@@ -246,7 +248,74 @@ private struct StatusCallout: View {
     }
 }
 
-private struct CommandRecordsView: View {
+struct ProgressEventsView: View {
+    let events: [InstallationProgressEvent]
+
+    var body: some View {
+        if !events.isEmpty {
+            Divider()
+            VStack(alignment: .leading, spacing: 8) {
+                Text("当前进度 / Live Progress")
+                    .font(.headline)
+                ForEach(events) { event in
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: icon(for: event.status))
+                            .foregroundStyle(tint(for: event.status))
+                            .frame(width: 18)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 8) {
+                                Text(event.title)
+                                    .font(.callout.weight(.semibold))
+                                if let elapsed = event.elapsedSeconds {
+                                    Text("\(elapsed, specifier: "%.1f")s")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            Text(event.detail)
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(3)
+                                .textSelection(.enabled)
+                            if !event.command.isEmpty {
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    Text(event.command.joined(separator: " "))
+                                        .font(.system(.caption, design: .monospaced))
+                                        .foregroundStyle(.secondary)
+                                        .textSelection(.enabled)
+                                }
+                            }
+                        }
+                    }
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(tint(for: event.status).opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+    }
+
+    private func icon(for status: InstallationProgressStatus) -> String {
+        switch status {
+        case .running: return "hourglass"
+        case .succeeded: return "checkmark.circle.fill"
+        case .failed: return "xmark.octagon.fill"
+        case .skipped: return "minus.circle.fill"
+        }
+    }
+
+    private func tint(for status: InstallationProgressStatus) -> Color {
+        switch status {
+        case .running: return .blue
+        case .succeeded: return .green
+        case .failed: return .red
+        case .skipped: return .secondary
+        }
+    }
+}
+
+struct CommandRecordsView: View {
     let records: [InstallationCommandRecord]
 
     var body: some View {

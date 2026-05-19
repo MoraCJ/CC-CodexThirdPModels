@@ -72,6 +72,30 @@ struct VerificationServiceTests {
         #expect(summary.failedCount == summary.checks.count)
         #expect(summary.checks.allSatisfy { $0.detail.contains("connection refused") })
     }
+
+    @Test
+    func runReportsProgressForEachVerificationCheck() async {
+        let runner = TransientCurlRunner(failuresBeforeSuccess: 0)
+        let lock = NSLock()
+        var events: [VerificationProgressEvent] = []
+
+        let summary = await VerificationService().run(
+            config: .default,
+            runner: runner,
+            attempts: 1,
+            retryDelayNanoseconds: 0,
+            progress: { event in
+                lock.withLock {
+                    events.append(event)
+                }
+            }
+        )
+
+        #expect(summary.isPassing)
+        #expect(events.contains { $0.status == .running && $0.name == "Proxy health" })
+        #expect(events.contains { $0.status == .passed && $0.name == "Codex CLI health" })
+        #expect(events.filter { $0.status == .passed }.count == summary.checks.count)
+    }
 }
 
 private final class TransientCurlRunner: CommandRunning, @unchecked Sendable {

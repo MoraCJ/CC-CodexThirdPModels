@@ -15,7 +15,7 @@ struct StartupConfigurationView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     SetupPanel(
                         title: "启动总览 / Start Overview",
-                        subtitle: "从这里完成检查、安装启动、重新验证；需要回到官方服务时也在这里还原。",
+                        subtitle: "从这里完成依赖探测、配置检查、安装启动和重新验证。",
                         systemImage: "power.circle.fill"
                     ) {
                         VStack(alignment: .leading, spacing: 16) {
@@ -26,19 +26,52 @@ struct StartupConfigurationView: View {
                     }
 
                     SetupPanel(
+                        title: "外部依赖 / External Dependencies",
+                        subtitle: "安装前会先探测 node/npm/brew/claude/codex 的真实路径；node 缺失会阻断安装。",
+                        systemImage: "point.3.connected.trianglepath.dotted"
+                    ) {
+                        DependencyChecksView(result: appState.toolCheckResult)
+                    }
+
+                    SetupPanel(
+                        title: "本机代理 / Local Proxy",
+                        subtitle: "只监听本机地址；LaunchAgent 会使用 RunAtLoad 和 KeepAlive。",
+                        systemImage: "bolt.horizontal.circle"
+                    ) {
+                        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+                            GridRow {
+                                Text("Host")
+                                    .foregroundStyle(.secondary)
+                                TextField("127.0.0.1", text: $appState.setupConfiguration.listenHost)
+                                    .textFieldStyle(.roundedBorder)
+                                    .controlSize(.large)
+                            }
+                            GridRow {
+                                Text("Port")
+                                    .foregroundStyle(.secondary)
+                                Stepper(value: $appState.setupConfiguration.listenPort, in: 1024...65535) {
+                                    Text("\(appState.setupConfiguration.listenPort)")
+                                        .monospacedDigit()
+                                }
+                                .controlSize(.large)
+                            }
+                            GridRow {
+                                Text("Keychain")
+                                    .foregroundStyle(.secondary)
+                                TextField("CJLocalProxy", text: $appState.setupConfiguration.keychainService)
+                                    .textFieldStyle(.roundedBorder)
+                                    .controlSize(.large)
+                            }
+                        }
+                        .font(.body)
+                    }
+
+                    SetupPanel(
                         title: "安装并启动 / Install & Start",
                         subtitle: "备份文件后写入配置、生成证书、启动 LaunchAgent，并立即验证代理端点。",
                         systemImage: "play.circle.fill"
                     ) {
                         InstallStartControlsView()
-                    }
-
-                    SetupPanel(
-                        title: "还原原厂服务 / Restore Official Defaults",
-                        subtitle: "一键把 Claude 与 Codex 从本机代理配置恢复到官方默认服务，方便随时切回原厂。",
-                        systemImage: "arrow.uturn.backward.circle.fill"
-                    ) {
-                        FactoryRestoreControlsView()
                     }
 
                     SetupPanel(
@@ -65,7 +98,7 @@ struct StartupConfigurationView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("启动配置 / Start Configuration")
                     .font(.title.bold())
-                Text("最常用的启动、验证和还原操作集中在这里；设置 Base URL 与模型仍在设置向导中完成。")
+                Text("依赖探测、启动安装和配置验证集中在这里；Base URL 与模型在设置页完成。")
                     .font(.title3)
                     .foregroundStyle(.secondary)
             }
@@ -82,14 +115,20 @@ struct StartupConfigurationView: View {
     private var actionButtons: some View {
         HStack(spacing: 12) {
             Button {
-                appState.validateConfiguration()
+                Task {
+                    await appState.checkConfiguration()
+                }
             } label: {
-                Label("检查配置 / Check", systemImage: appState.isConfigurationValid ? "checkmark.seal.fill" : "checkmark.circle")
+                Label(
+                    appState.isCheckingConfiguration ? "检查中 / Checking" : "检查配置 / Check",
+                    systemImage: appState.isCheckingConfiguration ? "hourglass" : (appState.isConfigurationValid ? "checkmark.seal.fill" : "checkmark.circle")
+                )
                     .frame(minWidth: 150)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .tint(appState.hasValidatedConfiguration ? (appState.isConfigurationValid ? .green : .orange) : .blue)
+            .disabled(appState.isCheckingConfiguration)
 
             Button {
                 Task {
@@ -170,6 +209,64 @@ struct StartupConfigurationView: View {
         case .notRun: return .secondary
         case .passed: return .green
         case .failed: return .red
+        }
+    }
+}
+
+private struct DependencyChecksView: View {
+    let result: ToolCheckResult?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let result {
+                ForEach(result.allTools, id: \.name) { tool in
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: icon(for: tool.status))
+                            .foregroundStyle(tint(for: tool.status))
+                            .frame(width: 20)
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack(spacing: 8) {
+                                Text(tool.name)
+                                    .font(.headline)
+                                if tool.isRequired {
+                                    InfoBadge(text: "必需 / Required", systemImage: "asterisk", tint: .red)
+                                } else {
+                                    InfoBadge(text: "可选 / Optional", systemImage: "info.circle", tint: .orange)
+                                }
+                            }
+                            Text(tool.path.isEmpty ? tool.detail : "\(tool.path) \(tool.version)")
+                                .font(.system(.callout, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .textSelection(.enabled)
+                        }
+                        Spacer()
+                    }
+                    .padding(10)
+                    .background(tint(for: tool.status).opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+            } else {
+                Label("尚未探测依赖；点击检查配置后会显示真实路径。", systemImage: "info.circle")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func icon(for status: CheckStatus) -> String {
+        switch status {
+        case .ok: return "checkmark.circle.fill"
+        case .warning: return "exclamationmark.triangle.fill"
+        case .missing, .failed: return "xmark.octagon.fill"
+        }
+    }
+
+    private func tint(for status: CheckStatus) -> Color {
+        switch status {
+        case .ok: return .green
+        case .warning: return .orange
+        case .missing, .failed: return .red
         }
     }
 }

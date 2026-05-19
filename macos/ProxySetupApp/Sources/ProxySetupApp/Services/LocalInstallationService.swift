@@ -19,7 +19,7 @@ struct InstallationEnvironment: Equatable {
                 "Library/LaunchAgents",
                 isDirectory: true
             ),
-            nodePath: "/opt/homebrew/bin/node",
+            nodePath: "",
             userID: Int(getuid()),
             loginKeychainPath: home
                 .appendingPathComponent("Library/Keychains/login.keychain-db")

@@ -37,39 +37,6 @@ struct ProviderSettingsView: View {
                         keyPlaceholder: "Codex provider API Key"
                     )
                 }
-
-                SetupPanel(
-                    title: "本机代理 / Local Proxy",
-                    subtitle: "只监听本机地址；LaunchAgent 会使用 RunAtLoad 和 KeepAlive。",
-                    systemImage: "bolt.horizontal.circle"
-                ) {
-                    Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
-                        GridRow {
-                            Text("Host")
-                                .foregroundStyle(.secondary)
-                            TextField("127.0.0.1", text: $config.listenHost)
-                                .textFieldStyle(.roundedBorder)
-                                .controlSize(.large)
-                        }
-                        GridRow {
-                            Text("Port")
-                                .foregroundStyle(.secondary)
-                            Stepper(value: $config.listenPort, in: 1024...65535) {
-                                Text("\(config.listenPort)")
-                                    .monospacedDigit()
-                            }
-                            .controlSize(.large)
-                        }
-                        GridRow {
-                            Text("Keychain")
-                                .foregroundStyle(.secondary)
-                            TextField("CJLocalProxy", text: $config.keychainService)
-                                .textFieldStyle(.roundedBorder)
-                                .controlSize(.large)
-                        }
-                    }
-                    .font(.body)
-                }
             }
             .padding(.vertical, 4)
         }

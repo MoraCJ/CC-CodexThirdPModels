@@ -27,12 +27,19 @@ struct FactoryRestoreService {
         clientConfigEnvironment: ClientConfigEnvironment = .defaultEnvironment(),
         confirmation: FactoryRestoreConfirmation,
         runner: CommandRunning = CommandRunner(),
-        timestamp: String = InstallationExecutionService.timestamp()
+        timestamp: String = InstallationExecutionService.timestamp(),
+        progress: InstallationProgressHandler? = nil
     ) async throws -> FactoryRestoreResult {
         guard confirmation.canProceed else {
             throw FactoryRestoreError.confirmationRequired
         }
 
+        await emit(
+            title: "备份现有配置 / Backup current files",
+            detail: "正在备份 Claude、Codex 和 LaunchAgent 配置",
+            status: .running,
+            progress: progress
+        )
         let launchAgentURL = environment.launchAgentDirectory
             .appendingPathComponent("\(label).plist")
         let changes = restoreTargets(
@@ -47,19 +54,47 @@ struct FactoryRestoreService {
             backupDirectory: backupDirectory,
             timestamp: timestamp
         )
+        await emit(
+            title: "备份现有配置 / Backup current files",
+            detail: backupResult.manifestURL.path,
+            status: .succeeded,
+            progress: progress
+        )
 
         var commandRecords: [InstallationCommandRecord] = []
         let launchCommands = LaunchAgentService(label: label).controlCommands(
             plistURL: launchAgentURL,
             userID: environment.userID
         )
-        _ = await run(
+        await emit(
+            title: "Stop LaunchAgent",
+            detail: launchCommands.bootout.joined(separator: " "),
+            status: .running,
+            command: launchCommands.bootout,
+            progress: progress
+        )
+        let stopRecord = await run(
             title: "Stop LaunchAgent",
             command: launchCommands.bootout,
             runner: runner,
             records: &commandRecords
         )
+        await emit(
+            title: "Stop LaunchAgent",
+            detail: stopRecord.succeeded
+                ? "完成 / Done"
+                : "LaunchAgent 可能未加载，继续还原配置 / LaunchAgent may not be loaded",
+            status: stopRecord.succeeded ? .succeeded : .skipped,
+            command: launchCommands.bootout,
+            progress: progress
+        )
 
+        await emit(
+            title: "还原客户端配置 / Restore client configs",
+            detail: "正在移除本机代理片段",
+            status: .running,
+            progress: progress
+        )
         try restoreClaudeCLISettings(at: clientConfigEnvironment.claudeSettingsURL)
         try removeIfExists(clientConfigEnvironment.claudeDesktopGatewayURL)
         try restoreClaudeDesktopMeta(at: clientConfigEnvironment.claudeDesktopMetaURL)
@@ -69,6 +104,12 @@ struct FactoryRestoreService {
             profileNames: config.codexProfiles.map(\.name)
         )
         try removeIfExists(launchAgentURL)
+        await emit(
+            title: "还原客户端配置 / Restore client configs",
+            detail: "Claude 与 Codex 已恢复官方默认服务",
+            status: .succeeded,
+            progress: progress
+        )
 
         return FactoryRestoreResult(
             backupResult: backupResult,
@@ -389,5 +430,22 @@ struct FactoryRestoreService {
         )
         records.append(record)
         return record
+    }
+
+    private func emit(
+        title: String,
+        detail: String,
+        status: InstallationProgressStatus,
+        command: [String] = [],
+        progress: InstallationProgressHandler?
+    ) async {
+        await progress?(
+            InstallationProgressEvent(
+                title: title,
+                detail: detail,
+                status: status,
+                command: command
+            )
+        )
     }
 }

@@ -73,6 +73,113 @@ struct InstallationExecutionServiceTests {
     }
 
     @Test
+    func executeReportsStreamingProgressEvents() async throws {
+        let temp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let source = temp.appendingPathComponent("source")
+        let installRoot = temp.appendingPathComponent("install")
+        let launchAgents = temp.appendingPathComponent("LaunchAgents")
+        let clientRoot = temp.appendingPathComponent("home")
+        defer { try? FileManager.default.removeItem(at: temp) }
+
+        try createProxySource(at: source)
+
+        var confirmation = InstallationConfirmation()
+        confirmation.reviewedDryRun = true
+        confirmation.createdBackups = true
+        confirmation.understandsSystemChanges = true
+        confirmation.typedPhrase = "INSTALL"
+
+        let lock = NSLock()
+        var events: [InstallationProgressEvent] = []
+        let runner = RecordingCommandRunner()
+
+        _ = try await InstallationExecutionService(label: "com.cj.proxy").execute(
+            config: .default,
+            environment: InstallationEnvironment(
+                installRoot: installRoot,
+                launchAgentDirectory: launchAgents,
+                nodePath: "/usr/local/bin/node",
+                userID: 501,
+                loginKeychainPath: clientRoot.appendingPathComponent("login.keychain-db").path
+            ),
+            clientConfigEnvironment: ClientConfigEnvironment(
+                claudeSettingsURL: clientRoot.appendingPathComponent(".claude/settings.json"),
+                claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/cj-local-proxy.json"),
+                claudeDesktopMetaURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/_meta.json"),
+                claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
+                codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
+            ),
+            confirmation: confirmation,
+            runner: runner,
+            timestamp: "20260518190500",
+            proxySourceDirectory: source,
+            progress: { event in
+                lock.withLock {
+                    events.append(event)
+                }
+            }
+        )
+
+        #expect(events.contains { $0.title.contains("探测依赖") && $0.status == .succeeded })
+        #expect(events.contains { $0.title == "Bootstrap LaunchAgent" && $0.status == .running })
+        #expect(events.contains { $0.title == "Start LaunchAgent" && $0.status == .succeeded })
+        #expect(events.contains { $0.title.contains("验证端点") && $0.status == .succeeded })
+    }
+
+    @Test
+    func executeWritesResolvedNodePathWhenEnvironmentDoesNotProvideOne() async throws {
+        let temp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let source = temp.appendingPathComponent("source")
+        let installRoot = temp.appendingPathComponent("install")
+        let launchAgents = temp.appendingPathComponent("LaunchAgents")
+        let clientRoot = temp.appendingPathComponent("home")
+        defer { try? FileManager.default.removeItem(at: temp) }
+
+        try createProxySource(at: source)
+
+        var confirmation = InstallationConfirmation()
+        confirmation.reviewedDryRun = true
+        confirmation.createdBackups = true
+        confirmation.understandsSystemChanges = true
+        confirmation.typedPhrase = "INSTALL"
+
+        let runner = RecordingCommandRunner(outputs: [
+            "command -v node": CommandResult(exitCode: 0, stdout: "/usr/local/bin/node\n", stderr: ""),
+            "/usr/local/bin/node --version": CommandResult(exitCode: 0, stdout: "v24.15.0\n", stderr: ""),
+            "command -v npm": CommandResult(exitCode: 1, stdout: "", stderr: ""),
+            "command -v brew": CommandResult(exitCode: 1, stdout: "", stderr: ""),
+            "command -v claude": CommandResult(exitCode: 1, stdout: "", stderr: ""),
+            "command -v codex": CommandResult(exitCode: 1, stdout: "", stderr: ""),
+        ])
+
+        let result = try await InstallationExecutionService(label: "com.cj.proxy").execute(
+            config: .default,
+            environment: InstallationEnvironment(
+                installRoot: installRoot,
+                launchAgentDirectory: launchAgents,
+                nodePath: "",
+                userID: 501,
+                loginKeychainPath: clientRoot.appendingPathComponent("login.keychain-db").path
+            ),
+            clientConfigEnvironment: ClientConfigEnvironment(
+                claudeSettingsURL: clientRoot.appendingPathComponent(".claude/settings.json"),
+                claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/cj-local-proxy.json"),
+                claudeDesktopMetaURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/_meta.json"),
+                claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
+                codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
+            ),
+            confirmation: confirmation,
+            runner: runner,
+            timestamp: "20260518190600",
+            proxySourceDirectory: source
+        )
+
+        let plist = try String(contentsOf: result.localInstallationResult.launchAgentPlistURL, encoding: .utf8)
+        #expect(plist.contains("/usr/local/bin/node"))
+        #expect(!plist.contains("/opt/homebrew/bin/node"))
+    }
+
+    @Test
     func executeRejectsMissingInstallationConfirmation() async throws {
         let service = InstallationExecutionService(label: "com.cj.proxy")
 
@@ -157,9 +264,14 @@ private final class RecordingCommandRunner: CommandRunning, @unchecked Sendable 
     private let lock = NSLock()
     private var commands: [[String]] = []
     private let failingExecutable: String?
+    private let outputs: [String: CommandResult]
 
-    init(failingExecutable: String? = nil) {
+    init(
+        failingExecutable: String? = nil,
+        outputs: [String: CommandResult] = [:]
+    ) {
         self.failingExecutable = failingExecutable
+        self.outputs = outputs
     }
 
     var recordedCommands: [[String]] {
@@ -169,6 +281,10 @@ private final class RecordingCommandRunner: CommandRunning, @unchecked Sendable 
     func run(_ executable: String, _ arguments: [String]) async -> CommandResult {
         lock.withLock {
             commands.append([executable] + arguments)
+        }
+        let key = ([executable] + arguments).joined(separator: " ")
+        if let output = outputs[key] {
+            return output
         }
         if executable == failingExecutable {
             return CommandResult(exitCode: 1, stdout: "", stderr: "forced failure")

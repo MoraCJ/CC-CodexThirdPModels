@@ -65,7 +65,7 @@ struct SmokeTests {
     @MainActor
     func appStateRequiresInstallGateBeforeRunningInstaller() async {
         var installCallCount = 0
-        let state = AppState(installationExecutor: { _, _ in
+        let state = AppState(installationExecutor: { _, _, _ in
             installCallCount += 1
             return SmokeTests.successfulInstallationResult()
         })
@@ -80,11 +80,20 @@ struct SmokeTests {
     @Test
     @MainActor
     func appStateRunsInjectedInstallerAndRecordsResult() async {
-        let state = AppState(installationExecutor: { _, confirmation in
+        let state = AppState(installationExecutor: { _, confirmation, progress in
             #expect(confirmation.canProceed)
+            await progress?(
+                InstallationProgressEvent(
+                    title: "Bootstrap LaunchAgent",
+                    detail: "launchctl bootstrap",
+                    status: .running,
+                    command: ["launchctl", "bootstrap"]
+                )
+            )
             return SmokeTests.successfulInstallationResult()
         })
         state.validateConfiguration()
+        state.toolCheckResult = SmokeTests.successfulToolCheckResult()
         state.installationConfirmation.reviewedDryRun = true
         state.installationConfirmation.createdBackups = true
         state.installationConfirmation.understandsSystemChanges = true
@@ -94,7 +103,8 @@ struct SmokeTests {
 
         #expect(state.installationStatusMessage.contains("安装完成"))
         #expect(state.proxyStatusLabel.contains("运行中"))
-        #expect(state.installationCommandRecords.map(\.title) == ["Bootstrap LaunchAgent"])
+        #expect(state.installationProgressEvents.map { $0.title } == ["Bootstrap LaunchAgent"])
+        #expect(state.installationCommandRecords.map { $0.title } == ["Bootstrap LaunchAgent"])
         #expect(state.installationVerificationSummary?.isPassing == true)
         #expect(state.backupManifestPath == "/tmp/manifest.json")
     }
@@ -117,7 +127,7 @@ struct SmokeTests {
     @MainActor
     func appStateRequiresRestoreGateBeforeRestoringFactoryDefaults() async {
         var restoreCallCount = 0
-        let state = AppState(factoryRestoreExecutor: { _, _ in
+        let state = AppState(factoryRestoreExecutor: { _, _, _ in
             restoreCallCount += 1
             return SmokeTests.successfulFactoryRestoreResult()
         })
@@ -131,8 +141,16 @@ struct SmokeTests {
     @Test
     @MainActor
     func appStateRunsInjectedFactoryRestoreAndRecordsResult() async {
-        let state = AppState(factoryRestoreExecutor: { _, confirmation in
+        let state = AppState(factoryRestoreExecutor: { _, confirmation, progress in
             #expect(confirmation.canProceed)
+            await progress?(
+                InstallationProgressEvent(
+                    title: "Stop LaunchAgent",
+                    detail: "launchctl bootout",
+                    status: .running,
+                    command: ["launchctl", "bootout"]
+                )
+            )
             return SmokeTests.successfulFactoryRestoreResult()
         })
         state.factoryRestoreConfirmation.reviewedBackups = true
@@ -143,7 +161,8 @@ struct SmokeTests {
 
         #expect(state.factoryRestoreStatusMessage.contains("已还原"))
         #expect(state.proxyStatusLabel.contains("官方服务"))
-        #expect(state.factoryRestoreCommandRecords.map(\.title) == ["Stop LaunchAgent"])
+        #expect(state.factoryRestoreProgressEvents.map { $0.title } == ["Stop LaunchAgent"])
+        #expect(state.factoryRestoreCommandRecords.map { $0.title } == ["Stop LaunchAgent"])
         #expect(state.factoryRestoreBackupManifestPath == "/tmp/restore-manifest.json")
     }
 
@@ -212,6 +231,23 @@ struct SmokeTests {
                     stderr: ""
                 ),
             ]
+        )
+    }
+
+    private static func successfulToolCheckResult() -> ToolCheckResult {
+        ToolCheckResult(
+            node: ToolCheck(
+                name: "node",
+                path: "/usr/local/bin/node",
+                status: .ok,
+                isRequired: true,
+                version: "v24.15.0",
+                detail: "found"
+            ),
+            npm: ToolCheck(name: "npm", path: "", status: .warning),
+            brew: ToolCheck(name: "brew", path: "", status: .warning),
+            claude: ToolCheck(name: "claude", path: "", status: .warning),
+            codex: ToolCheck(name: "codex", path: "", status: .warning)
         )
     }
 }
