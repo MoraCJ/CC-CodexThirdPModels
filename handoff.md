@@ -59,6 +59,65 @@ node --check claude-local-proxy/telemetry.js
 node --check claude-local-proxy/keychain.js
 ```
 
+## 0.2.30 测试机只读排查记录：T20 后 Claude Desktop 仍不可用
+
+### 检查范围
+
+2026-05-19 通过 SSH 只读检查测试机 `172.16.66.187`，用户 `nh`。本次没有修改远端程序、配置、LaunchAgent、Keychain 或 Claude/Codex 文件。
+
+### 关键证据
+
+- `ProxySetupApp` 当前运行的是 T20 包，二进制中已包含：
+  - `Claude Desktop Host / Desktop 运行组件`
+  - `Initialize Desktop Host`
+  - `ANTHROPIC_AUTH_TOKEN=CJ_LOCAL_PROXY_TOKEN`
+- 本机代理正常：
+  - LaunchAgent `com.cj.claude-local-https-proxy` 为 `state = running`。
+  - 程序为 `/usr/local/bin/node`。
+  - `RunAtLoad` 与 `KeepAlive` 生效。
+  - `https://127.0.0.1:38443/health` 与 `/claude-desktop/health` 返回 `ok`。
+- Claude Desktop 已进入 3P 模式：
+  - 进程使用 `--user-data-dir=/Users/nh/Library/Application Support/Claude-3p`。
+  - `_meta.json.appliedId` 指向 UUID 配置。
+  - `inferenceGatewayBaseUrl` 指向 `https://127.0.0.1:38443/claude-desktop`。
+- 当前失败不是代理不可用：
+  - telemetry 只有 `claude_cli` 成功请求，没有 `claude_desktop` 生成请求。
+  - Claude Desktop 在进入模型请求前就卡在 host 初始化。
+- `~/Library/Application Support/Claude-3p/claude-code` 仍为空。
+- Desktop 日志反复出现：
+  - `[CCD] Binary preflight: no binary on disk — attempting repair download`
+  - `Downloading bundle from https://downloads.claude.ai/claude-code-releases/2.1.138/darwin-arm64/claude.app.tar.zst`
+  - `Request error: net::ERR_CONNECTION_TIMED_OUT`
+  - `No path to Claude code executable`
+  - `Host Claude Code binary not available. Check that the download completed.`
+- Cowork VM 还额外缺资源：
+  - `cowork_vm_node.log` 显示 `rootfs.img missing`。
+  - VM 尝试下载 `https://downloads.claude.ai/vms/linux/arm64/.../rootfs.img.zst` 并超时。
+
+### 当前判断
+
+T20 的方向是对的，但真实测试机仍没有可用 Desktop Host，原因需要拆成两层：
+
+1. Code/Desktop host 层：版本目录 `claude-code/2.1.138` 没有 `.verified`、`claude.app/Contents/MacOS/claude` 或同级 `claude`。这说明 T20 的 host 初始化没有实际落到版本目录，或曾写入后被 Desktop repair/download 流程清掉。当前 App 没有持久化 host 初始化日志，无法从远端只读证据确认是哪一种。
+2. Cowork/VM 层：即使 host binary 补齐，Cowork 仍可能因为 `rootfs.img` 缺失而失败。测试机无法访问 `downloads.claude.ai`，所以仅创建 host launcher 不足以让 Cowork 完整工作；需要支持 VM/rootfs 离线初始化或在 UI 中明确标记 Cowork 仍缺离线资源。
+
+### 下一步建议
+
+- 先不要继续盲目改代理；代理健康和 CLI 请求已证明本机 HTTPS 代理链路正常。
+- App 需要新增持久化安装/Host 初始化日志，记录：
+  - 解析到的 Desktop host version。
+  - 是否创建版本目录。
+  - `.verified` 写入路径。
+  - 两个 symlink 写入结果。
+  - 初始化后复查结果。
+- Host 初始化流程需要改为更强约束：
+  - 如果 Claude Desktop 已解析出 version 但 host 仍缺失，安装页应把 `Initialize Host` 作为明确待办，而不是让用户误以为 `Install & Start` 已完成所有 Desktop 修复。
+  - 初始化后立即检查 `claude-code/<version>`，若仍为空，界面必须红色提示。
+- Cowork 支持需要单独任务卡：
+  - 探测 `vm_bundles/claudevm.bundle`、`claude-code-vm/<version>` 和 rootfs。
+  - 支持离线导入或从可用机器复制 VM/rootfs 资源。
+  - UI 区分 `Code Host ready` 与 `Cowork VM ready`。
+
 ## 0.2.29 T20 完成记录：Claude Desktop Host 离线初始化
 
 ### 背景与根因
