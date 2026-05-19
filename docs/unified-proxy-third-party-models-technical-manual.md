@@ -113,18 +113,21 @@ HEADERS_TIMEOUT_MS=310000
 
 ```json
 {
-  "provider": "gateway",
-  "gatewayBaseUrl": "https://127.0.0.1:38443",
-  "gatewayApiKey": "<ARK_API_KEY>",
-  "gatewayAuthScheme": "bearer",
+  "inferenceProvider": "gateway",
+  "inferenceGatewayBaseUrl": "https://127.0.0.1:38443/claude-desktop",
+  "inferenceGatewayApiKey": "CJ_LOCAL_PROXY_TOKEN",
+  "inferenceGatewayAuthScheme": "bearer",
   "inferenceModels": [
-    { "id": "claude-sonnet-4-6", "name": "Sonnet 4.6" },
-    { "id": "claude-opus-4-6", "name": "Opus 4.6" },
-    { "id": "claude-haiku-4-5", "name": "Haiku 4.5" }
+    { "name": "claude-sonnet-4-6", "labelOverride": "Sonnet 4.6" },
+    { "name": "claude-opus-4-6", "labelOverride": "Opus 4.6" },
+    { "name": "claude-haiku-4-5", "labelOverride": "Haiku 4.5" }
   ],
-  "hideAnthropicSignIn": true
+  "disableDeploymentModeChooser": true,
+  "unstableDisableModelVerification": true
 }
 ```
+
+Claude Desktop 1.7196+ 的 `configLibrary/_meta.json` 中 `appliedId` 必须是 UUID，且实际配置文件名要是 `configLibrary/<UUID>.json`。
 
 ### 6.2 Claude Code CLI / host settings
 

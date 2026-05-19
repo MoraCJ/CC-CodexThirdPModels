@@ -187,18 +187,21 @@ Desktop 3P Gateway：
 
 ```json
 {
-  "provider": "gateway",
-  "gatewayBaseUrl": "https://127.0.0.1:38443/claude-desktop",
-  "gatewayApiKey": "<ARK_API_KEY>",
-  "gatewayAuthScheme": "bearer",
+  "inferenceProvider": "gateway",
+  "inferenceGatewayBaseUrl": "https://127.0.0.1:38443/claude-desktop",
+  "inferenceGatewayApiKey": "CJ_LOCAL_PROXY_TOKEN",
+  "inferenceGatewayAuthScheme": "bearer",
   "inferenceModels": [
-    { "id": "claude-sonnet-4-6", "name": "Sonnet 4.6" },
-    { "id": "claude-opus-4-6", "name": "Opus 4.6" },
-    { "id": "claude-haiku-4-5", "name": "Haiku 4.5" }
+    { "name": "claude-sonnet-4-6", "labelOverride": "Sonnet 4.6" },
+    { "name": "claude-opus-4-6", "labelOverride": "Opus 4.6" },
+    { "name": "claude-haiku-4-5", "labelOverride": "Haiku 4.5" }
   ],
-  "hideAnthropicSignIn": true
+  "disableDeploymentModeChooser": true,
+  "unstableDisableModelVerification": true
 }
 ```
+
+Claude Desktop 1.7196+ 要求 `configLibrary/_meta.json` 的 `appliedId` 是 UUID，并读取 `configLibrary/<UUID>.json`；非 UUID 的旧配置 ID 会被忽略。
 
 CLI/host settings：
 

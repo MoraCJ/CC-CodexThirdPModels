@@ -21,7 +21,13 @@ struct ClientConfigServiceTests {
 
         #expect(json.contains("https://127.0.0.1:38443/claude-desktop"))
         #expect(json.contains("CJ_LOCAL_PROXY_TOKEN"))
+        #expect(json.contains("\"inferenceProvider\" : \"gateway\""))
+        #expect(json.contains("\"inferenceGatewayBaseUrl\""))
+        #expect(json.contains("\"inferenceGatewayApiKey\""))
         #expect(json.contains("claude-sonnet-4-6"))
+        #expect(json.contains("labelOverride"))
+        #expect(!json.contains("gatewayBaseUrl"))
+        #expect(!json.contains("\"id\" : \"cj-local-proxy\""))
         #expect(!json.contains("Bearer "))
     }
 
@@ -87,7 +93,9 @@ struct ClientConfigServiceTests {
     func managedClientConfigChangesUseInjectedPathsAndLocalToken() throws {
         let environment = ClientConfigEnvironment(
             claudeSettingsURL: URL(fileURLWithPath: "/tmp/home/.claude/settings.json"),
-            claudeDesktopGatewayURL: URL(fileURLWithPath: "/tmp/home/Library/Application Support/Claude-3p/configLibrary/cj-local-proxy.json"),
+            claudeDesktopGatewayURL: URL(
+                fileURLWithPath: "/tmp/home/Library/Application Support/Claude-3p/configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"
+            ),
             claudeDesktopMetaURL: URL(fileURLWithPath: "/tmp/home/Library/Application Support/Claude-3p/configLibrary/_meta.json"),
             claudeDesktopModeURL: URL(fileURLWithPath: "/tmp/home/Library/Application Support/Claude-3p/claude_desktop_config.json"),
             codexConfigURL: URL(fileURLWithPath: "/tmp/home/.codex/config.toml")
@@ -107,12 +115,14 @@ struct ClientConfigServiceTests {
             "Codex config",
         ])
         #expect(changes[0].targetURL.path == "/tmp/home/.claude/settings.json")
-        #expect(changes[1].targetURL.path.hasSuffix("configLibrary/cj-local-proxy.json"))
+        #expect(changes[1].targetURL.path.hasSuffix("configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"))
         #expect(changes[2].targetURL.path.hasSuffix("configLibrary/_meta.json"))
         #expect(changes[3].targetURL.path.hasSuffix("claude_desktop_config.json"))
         #expect(changes[4].targetURL.path == "/tmp/home/.codex/config.toml")
         #expect(joined.contains("CJ_LOCAL_PROXY_TOKEN"))
-        #expect(joined.contains("\"appliedId\""))
+        #expect(joined.contains("\"appliedId\" : \"\(ClientConfigEnvironment.claudeDesktopConfigID)\""))
+        #expect(joined.contains("\"entries\""))
+        #expect(joined.contains("\"isManaged\" : false"))
         #expect(joined.contains("\"deploymentMode\" : \"3p\""))
         #expect(!joined.contains("Bearer "))
         #expect(!joined.contains("sk-"))

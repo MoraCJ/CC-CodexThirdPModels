@@ -45,7 +45,7 @@ swift test
 - 安装后的 health 验证会逐 endpoint 显示进度；验证耗时已收紧，失败时能更快暴露具体端点。
 - `还原配置 / Restore` 支持用户显式确认后停止并移除本机代理 LaunchAgent，删除 Claude Desktop 3P gateway，移除 Claude CLI 与 Codex 中由本 App 写入的代理配置片段，让 Claude/Codex 回到官方服务。
 - `日志 / Logs` 可查看本次安装/还原进度与命令记录，并只读 tail `proxy.log`、`proxy.err.log`、`telemetry.jsonl`。
-- Claude Desktop 配置写入 `~/Library/Application Support/Claude-3p/configLibrary/cj-local-proxy.json`、`_meta.json` 与 `claude_desktop_config.json`，Codex 顶层默认模型使用第一个 profile。
+- Claude Desktop 配置写入 `~/Library/Application Support/Claude-3p/configLibrary/<UUID>.json`、`_meta.json` 与 `claude_desktop_config.json`；配置 ID 使用稳定 UUID，兼容 Claude Desktop 1.7196+ 的 3P configLibrary 读取规则。Codex 顶层默认模型使用第一个 profile。
 - App bundle 打包脚本会复制 SwiftPM 资源 bundle 与 AppIcon。
 
 ## 安全约束

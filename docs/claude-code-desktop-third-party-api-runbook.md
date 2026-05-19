@@ -240,20 +240,39 @@ launchctl print gui/$(id -u)/com.cj.claude-local-https-proxy
 
 Developer 模式里的 Configure third-party inference 最终会落到 `~/Library/Application Support/Claude-3p/configLibrary`。配置可以用 UI 写，也可以脚本生成，但结构要保持一致。
 
+Claude Desktop 1.7196+ 要求 `_meta.json.appliedId` 是 UUID，并读取 `configLibrary/<UUID>.json`。不要再使用 `cj-local-proxy` 这类非 UUID 作为配置 ID，否则 Desktop 会忽略配置并继续以 1P 模式启动。
+
 ```json
 {
-  "provider": "gateway",
-  "gatewayBaseUrl": "https://127.0.0.1:38443",
-  "gatewayApiKey": "<ARK_API_KEY>",
-  "gatewayAuthScheme": "bearer",
+  "inferenceProvider": "gateway",
+  "inferenceGatewayBaseUrl": "https://127.0.0.1:38443/claude-desktop",
+  "inferenceGatewayApiKey": "CJ_LOCAL_PROXY_TOKEN",
+  "inferenceGatewayAuthScheme": "bearer",
   "inferenceModels": [
-    { "id": "claude-sonnet-4-6", "name": "Sonnet 4.6" },
-    { "id": "claude-opus-4-6", "name": "Opus 4.6" },
-    { "id": "claude-haiku-4-5", "name": "Haiku 4.5" }
+    { "name": "claude-sonnet-4-6", "labelOverride": "Sonnet 4.6" },
+    { "name": "claude-opus-4-6", "labelOverride": "Opus 4.6" },
+    { "name": "claude-haiku-4-5", "labelOverride": "Haiku 4.5" }
   ],
-  "hideAnthropicSignIn": true
+  "disableDeploymentModeChooser": true,
+  "unstableDisableModelVerification": true
 }
 
+```
+
+`_meta.json` 示例：
+
+```json
+{
+  "appliedId": "9f5d0b76-5b35-4c9e-9d5d-2f2a8f8f8c01",
+  "entries": [
+    {
+      "id": "9f5d0b76-5b35-4c9e-9d5d-2f2a8f8f8c01",
+      "name": "CJ Local Proxy",
+      "provider": "gateway"
+    }
+  ],
+  "isManaged": false
+}
 ```
 
 注意：如果 `inferenceModels` 显式配置，日志里 `Gateway /v1/models returned 0 usable models` 不一定是失败；真正要看 health 是否 healthy，以及 `/v1/messages` 是否返回 200。

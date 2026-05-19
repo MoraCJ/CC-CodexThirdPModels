@@ -13,7 +13,7 @@ struct FactoryRestoreServiceTests {
 
         let clientEnvironment = ClientConfigEnvironment(
             claudeSettingsURL: clientRoot.appendingPathComponent(".claude/settings.json"),
-            claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/cj-local-proxy.json"),
+            claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"),
             claudeDesktopMetaURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/_meta.json"),
             claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
             codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
@@ -52,8 +52,15 @@ struct FactoryRestoreServiceTests {
         #expect(settings.contains("KEEP_ME"))
 
         #expect(!FileManager.default.fileExists(atPath: clientEnvironment.claudeDesktopGatewayURL.path))
+        #expect(!FileManager.default.fileExists(
+            atPath: clientEnvironment.claudeDesktopGatewayURL
+                .deletingLastPathComponent()
+                .appendingPathComponent("cj-local-proxy.json")
+                .path
+        ))
 
         let meta = try String(contentsOf: clientEnvironment.claudeDesktopMetaURL, encoding: .utf8)
+        #expect(!meta.contains(ClientConfigEnvironment.claudeDesktopConfigID))
         #expect(!meta.contains("cj-local-proxy"))
         #expect(meta.contains("official-config"))
 
@@ -70,7 +77,7 @@ struct FactoryRestoreServiceTests {
 
         let launchAgent = launchAgents.appendingPathComponent("com.cj.proxy.plist")
         #expect(!FileManager.default.fileExists(atPath: launchAgent.path))
-        #expect(result.backupResult.manifest.entries.count == 6)
+        #expect(result.backupResult.manifest.entries.count == 7)
         #expect(FileManager.default.fileExists(atPath: result.backupResult.manifestURL.path))
         #expect(result.commandRecords.contains { $0.title == "Stop LaunchAgent" })
         #expect(runner.recordedCommands.contains { $0.joined(separator: " ").contains("launchctl bootout gui/501") })
@@ -90,7 +97,7 @@ struct FactoryRestoreServiceTests {
                 ),
                 clientConfigEnvironment: ClientConfigEnvironment(
                     claudeSettingsURL: URL(fileURLWithPath: "/tmp/.claude/settings.json"),
-                    claudeDesktopGatewayURL: URL(fileURLWithPath: "/tmp/Claude-3p/configLibrary/cj-local-proxy.json"),
+                    claudeDesktopGatewayURL: URL(fileURLWithPath: "/tmp/Claude-3p/configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"),
                     claudeDesktopMetaURL: URL(fileURLWithPath: "/tmp/Claude-3p/configLibrary/_meta.json"),
                     claudeDesktopModeURL: URL(fileURLWithPath: "/tmp/Claude-3p/claude_desktop_config.json"),
                     codexConfigURL: URL(fileURLWithPath: "/tmp/.codex/config.toml")
@@ -111,7 +118,7 @@ struct FactoryRestoreServiceTests {
 
         let clientEnvironment = ClientConfigEnvironment(
             claudeSettingsURL: clientRoot.appendingPathComponent(".claude/settings.json"),
-            claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/cj-local-proxy.json"),
+            claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"),
             claudeDesktopMetaURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/_meta.json"),
             claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
             codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
@@ -172,6 +179,9 @@ struct FactoryRestoreServiceTests {
         for url in [
             clientEnvironment.claudeSettingsURL,
             clientEnvironment.claudeDesktopGatewayURL,
+            clientEnvironment.claudeDesktopGatewayURL
+                .deletingLastPathComponent()
+                .appendingPathComponent("cj-local-proxy.json"),
             clientEnvironment.claudeDesktopMetaURL,
             clientEnvironment.claudeDesktopModeURL,
             clientEnvironment.codexConfigURL,
@@ -196,15 +206,32 @@ struct FactoryRestoreServiceTests {
         """.write(to: clientEnvironment.claudeSettingsURL, atomically: true, encoding: .utf8)
 
         try """
-        {"id":"cj-local-proxy","name":"CJ Local Proxy"}
+        {
+          "inferenceProvider": "gateway",
+          "inferenceGatewayBaseUrl": "https://127.0.0.1:38443/claude-desktop",
+          "inferenceGatewayApiKey": "CJ_LOCAL_PROXY_TOKEN"
+        }
         """.write(to: clientEnvironment.claudeDesktopGatewayURL, atomically: true, encoding: .utf8)
 
         try """
+        {"id":"cj-local-proxy","name":"Legacy CJ Local Proxy"}
+        """.write(
+            to: clientEnvironment.claudeDesktopGatewayURL
+                .deletingLastPathComponent()
+                .appendingPathComponent("cj-local-proxy.json"),
+            atomically: true,
+            encoding: .utf8
+        )
+
+        try """
         {
-          "appliedId": "cj-local-proxy",
-          "configs": [
-            {"id": "cj-local-proxy", "name": "CJ Local Proxy"},
+          "appliedId": "\(ClientConfigEnvironment.claudeDesktopConfigID)",
+          "entries": [
+            {"id": "\(ClientConfigEnvironment.claudeDesktopConfigID)", "name": "CJ Local Proxy"},
             {"id": "official-config", "name": "Official"}
+          ],
+          "configs": [
+            {"id": "cj-local-proxy", "name": "Legacy CJ Local Proxy"}
           ]
         }
         """.write(to: clientEnvironment.claudeDesktopMetaURL, atomically: true, encoding: .utf8)

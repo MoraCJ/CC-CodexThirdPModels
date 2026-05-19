@@ -278,7 +278,18 @@ node --test claude-local-proxy/tests/telemetry.test.js
 node --check claude-local-proxy/server.js
 node --check claude-local-proxy/telemetry.js
 node --check claude-local-proxy/keychain.js
+./script/build_and_run.sh --verify
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-T19-ClaudeDesktop3P-20260519.zip
+ditto -x -k dist/ProxySetupApp-T19-ClaudeDesktop3P-20260519.zip /tmp/proxysetupapp-t19-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t19-package-check/ProxySetupApp.app
 ```
+
+交付包：
+
+- `dist/ProxySetupApp-T19-ClaudeDesktop3P-20260519.zip`
+- SHA256：`df286017d7928f12e938c5a56a5a090368226bf293d126aef005e3ec57254242`
 
 Expected: all tests pass and checks print no syntax errors.
 
@@ -1831,7 +1842,7 @@ Expected: all tests/builds pass. No command should modify real Claude/Codex conf
 
 - [x] **Step 4: 修正 Claude Desktop 与 Codex 默认模型可用性**
 
-Claude Desktop 改为写入 `Claude-3p/configLibrary/cj-local-proxy.json`、`_meta.json` 和 `claude_desktop_config.json`；Codex 顶层默认模型明确使用第一个 profile，模型页提供“设为默认 / Make Default”按钮。
+Claude Desktop 当时改为写入 `Claude-3p/configLibrary/cj-local-proxy.json`、`_meta.json` 和 `claude_desktop_config.json`；Codex 顶层默认模型明确使用第一个 profile，模型页提供“设为默认 / Make Default”按钮。注意：Claude Desktop 1.7196+ 已在 Task 19 修正为 UUID configLibrary 文件与新字段 schema。
 
 - [x] **Step 5: UI 可用性与 AppIcon**
 
@@ -2021,3 +2032,46 @@ codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t18-package-che
 
 - `dist/ProxySetupApp-T18-FlowStreaming-20260519.zip`
 - SHA256：`5f6ed4922b46810eeaf66eab5e9a6a41ba99457a7607da5df41dedccb3a7f1fd`
+
+## Task 19：Claude Desktop 1.7196+ 3P configLibrary 兼容修复
+
+状态：已完成。
+
+远端测试机现象：
+
+- 代理和 LaunchAgent 正常，`/health`、`/claude-cli/health`、`/claude-desktop/health` 均返回 200。
+- Claude Code CLI 已能通过 `/claude-cli` 调用代理。
+- Claude Desktop 启动后黑屏，进程仍以 `deploymentMode: 1p` 和默认 `~/Library/Application Support/Claude` 用户数据目录运行。
+- `~/Library/Logs/Claude-3p/main.log` 不存在，代理日志没有 `/claude-desktop` 请求。
+
+根因：
+
+- 当前 App 写入的 Desktop 配置仍是旧格式：`configLibrary/cj-local-proxy.json`、`_meta.json.configs`、`gatewayBaseUrl/gatewayApiKey`。
+- Claude Desktop 1.7196+ 的 3P configLibrary 读取逻辑要求 `_meta.json.appliedId` 是 UUID，并读取 `configLibrary/<UUID>.json`。
+- 新版本配置字段要求使用 `inferenceProvider`、`inferenceGatewayBaseUrl`、`inferenceGatewayApiKey`、`inferenceGatewayAuthScheme`、`inferenceModels`。
+- 由于 `appliedId` 不是 UUID 且字段不匹配，Claude Desktop 忽略本 App 写入的 3P 配置，继续走官方 1P bootstrap，于是出现 `app-unavailable-in-region` 黑屏。
+
+关键实现：
+
+- `ClientConfigEnvironment` 增加稳定 UUID：`9f5d0b76-5b35-4c9e-9d5d-2f2a8f8f8c01`。
+- Claude Desktop gateway 文件改为写入 `Claude-3p/configLibrary/<UUID>.json`。
+- gateway 配置改为新 schema：
+  - `inferenceProvider: gateway`
+  - `inferenceGatewayBaseUrl`
+  - `inferenceGatewayApiKey`
+  - `inferenceGatewayAuthScheme: bearer`
+  - `inferenceModels` 使用 `name` + `labelOverride`
+  - `disableDeploymentModeChooser: true`
+  - `unstableDisableModelVerification: true`
+- `_meta.json` 同时写 `appliedId`、`entries`、`configs`、`isManaged: false`，兼容新旧 UI 读取。
+- 还原原厂服务同时清理新版 UUID gateway 和旧版 `cj-local-proxy.json`，并从 `entries/configs/appliedId` 中移除本 App 管理项。
+
+验证：
+
+```bash
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+```

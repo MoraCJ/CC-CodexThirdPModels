@@ -19,7 +19,8 @@ struct FactoryRestoreResult: Equatable {
 
 struct FactoryRestoreService {
     var label = "com.cj.claude-local-https-proxy"
-    private let claudeDesktopConfigID = "cj-local-proxy"
+    private let claudeDesktopConfigID = ClientConfigEnvironment.claudeDesktopConfigID
+    private let legacyClaudeDesktopConfigID = "cj-local-proxy"
 
     func restore(
         config: SetupConfiguration,
@@ -97,6 +98,7 @@ struct FactoryRestoreService {
         )
         try restoreClaudeCLISettings(at: clientConfigEnvironment.claudeSettingsURL)
         try removeIfExists(clientConfigEnvironment.claudeDesktopGatewayURL)
+        try removeIfExists(legacyClaudeDesktopGatewayURL(from: clientConfigEnvironment))
         try restoreClaudeDesktopMeta(at: clientConfigEnvironment.claudeDesktopMetaURL)
         try restoreClaudeDesktopMode(at: clientConfigEnvironment.claudeDesktopModeURL)
         try restoreCodexConfig(
@@ -135,7 +137,7 @@ struct FactoryRestoreService {
         clientConfigEnvironment: ClientConfigEnvironment,
         launchAgentURL: URL
     ) -> [ManagedFileChange] {
-        [
+        var targets = [
             ManagedFileChange(
                 title: "Claude CLI settings restore",
                 targetURL: clientConfigEnvironment.claudeSettingsURL,
@@ -146,6 +148,20 @@ struct FactoryRestoreService {
                 targetURL: clientConfigEnvironment.claudeDesktopGatewayURL,
                 proposedContents: ""
             ),
+        ]
+
+        let legacyGatewayURL = legacyClaudeDesktopGatewayURL(from: clientConfigEnvironment)
+        if legacyGatewayURL != clientConfigEnvironment.claudeDesktopGatewayURL {
+            targets.append(
+                ManagedFileChange(
+                    title: "Claude Desktop legacy gateway restore",
+                    targetURL: legacyGatewayURL,
+                    proposedContents: ""
+                )
+            )
+        }
+
+        targets.append(contentsOf: [
             ManagedFileChange(
                 title: "Claude Desktop config library meta restore",
                 targetURL: clientConfigEnvironment.claudeDesktopMetaURL,
@@ -166,7 +182,8 @@ struct FactoryRestoreService {
                 targetURL: launchAgentURL,
                 proposedContents: ""
             ),
-        ]
+        ])
+        return targets
     }
 
     private func restoreClaudeCLISettings(at url: URL) throws {
@@ -199,12 +216,13 @@ struct FactoryRestoreService {
     private func restoreClaudeDesktopMeta(at url: URL) throws {
         guard var object = try readJSONDictionary(at: url) else { return }
 
-        if object["appliedId"] as? String == claudeDesktopConfigID {
+        let managedIDs = [claudeDesktopConfigID, legacyClaudeDesktopConfigID]
+        if managedIDs.contains(object["appliedId"] as? String ?? "") {
             object.removeValue(forKey: "appliedId")
         }
 
         if var configs = object["configs"] as? [[String: Any]] {
-            configs.removeAll { ($0["id"] as? String) == claudeDesktopConfigID }
+            configs.removeAll { managedIDs.contains($0["id"] as? String ?? "") }
             if configs.isEmpty {
                 object.removeValue(forKey: "configs")
             } else {
@@ -212,7 +230,22 @@ struct FactoryRestoreService {
             }
         }
 
+        if var entries = object["entries"] as? [[String: Any]] {
+            entries.removeAll { managedIDs.contains($0["id"] as? String ?? "") }
+            if entries.isEmpty {
+                object.removeValue(forKey: "entries")
+            } else {
+                object["entries"] = entries
+            }
+        }
+
         try writeJSONOrRemoveIfEmpty(object, to: url)
+    }
+
+    private func legacyClaudeDesktopGatewayURL(from environment: ClientConfigEnvironment) -> URL {
+        environment.claudeDesktopGatewayURL
+            .deletingLastPathComponent()
+            .appendingPathComponent("\(legacyClaudeDesktopConfigID).json")
     }
 
     private func restoreClaudeDesktopMode(at url: URL) throws {

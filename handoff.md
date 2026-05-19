@@ -749,8 +749,9 @@ codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-savehint-packag
   - 安装后展示命令日志、备份 manifest 和 health 验证结果。
 - Claude Desktop 配置路径修正：
   - 从临时 `~/Library/Application Support/Claude-3p/config.json` 改为项目 runbook 要求的 `configLibrary` 体系。
-  - 写入 `~/Library/Application Support/Claude-3p/configLibrary/cj-local-proxy.json`。
-  - 写入 `~/Library/Application Support/Claude-3p/configLibrary/_meta.json`，`appliedId` 指向 `cj-local-proxy`。
+  - 当时写入 `~/Library/Application Support/Claude-3p/configLibrary/cj-local-proxy.json`。
+  - 当时写入 `~/Library/Application Support/Claude-3p/configLibrary/_meta.json`，`appliedId` 指向 `cj-local-proxy`。
+  - 注意：Claude Desktop 1.7196+ 已在 T19 修正为 UUID configLibrary 文件与新字段 schema。
   - 写入 `~/Library/Application Support/Claude-3p/claude_desktop_config.json`，启用 `deploymentMode: 3p`。
 - Codex 模型配置说明与切换：
   - 顶层默认 `model` 使用第一个 profile。
@@ -1088,6 +1089,65 @@ codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t18-package-che
 - 本轮自动化测试没有写本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、真实 LaunchAgent 或生产 Keychain。
 - `./script/build_and_run.sh --verify` 只启动 App，不点击真实安装或还原。
 - `dist/` 构建产物仍被 `.gitignore` 忽略，不提交 zip。
+
+### 0.2.28 T19 完成记录：Claude Desktop 1.7196+ 3P configLibrary 兼容修复
+
+本轮针对测试机 `172.16.66.187` 做了只读排查，确认：
+
+- 代理和 LaunchAgent 正常运行，LaunchAgent 已使用真实 Node 路径 `/usr/local/bin/node`。
+- `https://127.0.0.1:38443/health`、`/claude-cli/health`、`/claude-desktop/health` 均返回 200。
+- Claude Code CLI 已通过 `/claude-cli` 成功请求代理。
+- Claude Desktop 启动后仍走 `deploymentMode: 1p`，日志出现 `app-unavailable-in-region`、bootstrap API 返回 HTML 导致 JSON parse error。
+- `~/Library/Logs/Claude-3p/main.log` 不存在，代理日志没有 `/claude-desktop` 请求。
+
+根因：
+
+- App 写入的 Claude Desktop 3P 配置仍是旧格式：`configLibrary/cj-local-proxy.json`、`_meta.json.configs`、`gatewayBaseUrl/gatewayApiKey`。
+- Claude Desktop 1.7196+ 实际要求 `_meta.json.appliedId` 是 UUID，并读取 `configLibrary/<UUID>.json`。
+- 3P 配置字段要求 `inferenceProvider`、`inferenceGatewayBaseUrl`、`inferenceGatewayApiKey`、`inferenceGatewayAuthScheme`、`inferenceModels`。
+- 因此 Desktop 忽略旧配置，继续按官方 1P 模式启动，导致黑屏。
+
+已修复：
+
+- `ClientConfigEnvironment` 增加稳定 UUID：`9f5d0b76-5b35-4c9e-9d5d-2f2a8f8f8c01`。
+- Claude Desktop gateway 改为写入 `~/Library/Application Support/Claude-3p/configLibrary/<UUID>.json`。
+- Gateway 内容改为新字段：
+  - `inferenceProvider: gateway`
+  - `inferenceGatewayBaseUrl`
+  - `inferenceGatewayApiKey`
+  - `inferenceGatewayAuthScheme: bearer`
+  - `inferenceModels` 使用 `name` + `labelOverride`
+  - `disableDeploymentModeChooser: true`
+  - `unstableDisableModelVerification: true`
+- `_meta.json` 同时写 `appliedId`、`entries`、`configs`、`isManaged: false`。
+- 还原原厂服务同时清理新版 UUID gateway 与旧版 `cj-local-proxy.json`，并从 meta 的 `entries/configs/appliedId` 中移除本 App 管理项。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+./script/build_and_run.sh --verify
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-T19-ClaudeDesktop3P-20260519.zip
+ditto -x -k dist/ProxySetupApp-T19-ClaudeDesktop3P-20260519.zip /tmp/proxysetupapp-t19-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t19-package-check/ProxySetupApp.app
+```
+
+新测试包：
+
+- `dist/ProxySetupApp-T19-ClaudeDesktop3P-20260519.zip`
+- zip 大小：约 `2.7M`。
+- SHA256：`df286017d7928f12e938c5a56a5a090368226bf293d126aef005e3ec57254242`。
+
+安全备注：
+
+- 远端测试机本轮只读排查，没有修改远端 Claude/Codex 配置或 Keychain。
+- 本地自动化测试仍只使用临时目录，不写本机真实 Claude/Codex 配置、LaunchAgent 或生产 Keychain。
 
 ### 0.3 Git 状态
 

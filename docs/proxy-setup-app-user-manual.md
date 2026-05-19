@@ -345,7 +345,7 @@ RESTORE
 
 - 停止本机代理 LaunchAgent。
 - 删除本 App 管理的 LaunchAgent plist。
-- 删除 Claude Desktop 的 `cj-local-proxy` gateway 配置。
+- 删除 Claude Desktop 的本 App gateway 配置；新版使用 UUID 配置文件，同时会清理旧版 `cj-local-proxy` gateway 文件。
 - 从 Claude Desktop meta/deployment mode 中移除本 App 写入的 3P 配置。
 - 从 Claude CLI settings 中移除本 App 写入的代理 env key。
 - 从 Codex config 中移除本 App 写入的 proxy provider、profile 和默认模型片段。

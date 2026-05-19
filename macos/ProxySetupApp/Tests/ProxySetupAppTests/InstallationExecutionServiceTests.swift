@@ -41,7 +41,7 @@ struct InstallationExecutionServiceTests {
             ),
             clientConfigEnvironment: ClientConfigEnvironment(
                 claudeSettingsURL: clientRoot.appendingPathComponent(".claude/settings.json"),
-                claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/cj-local-proxy.json"),
+                claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"),
                 claudeDesktopMetaURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/_meta.json"),
                 claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
                 codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
@@ -104,7 +104,7 @@ struct InstallationExecutionServiceTests {
             ),
             clientConfigEnvironment: ClientConfigEnvironment(
                 claudeSettingsURL: clientRoot.appendingPathComponent(".claude/settings.json"),
-                claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/cj-local-proxy.json"),
+                claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"),
                 claudeDesktopMetaURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/_meta.json"),
                 claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
                 codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
@@ -163,7 +163,7 @@ struct InstallationExecutionServiceTests {
             ),
             clientConfigEnvironment: ClientConfigEnvironment(
                 claudeSettingsURL: clientRoot.appendingPathComponent(".claude/settings.json"),
-                claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/cj-local-proxy.json"),
+                claudeDesktopGatewayURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"),
                 claudeDesktopMetaURL: clientRoot.appendingPathComponent("Claude-3p/configLibrary/_meta.json"),
                 claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
                 codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
@@ -195,7 +195,7 @@ struct InstallationExecutionServiceTests {
                 ),
                 clientConfigEnvironment: ClientConfigEnvironment(
                     claudeSettingsURL: URL(fileURLWithPath: "/tmp/.claude/settings.json"),
-                    claudeDesktopGatewayURL: URL(fileURLWithPath: "/tmp/Claude-3p/configLibrary/cj-local-proxy.json"),
+                    claudeDesktopGatewayURL: URL(fileURLWithPath: "/tmp/Claude-3p/configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"),
                     claudeDesktopMetaURL: URL(fileURLWithPath: "/tmp/Claude-3p/configLibrary/_meta.json"),
                     claudeDesktopModeURL: URL(fileURLWithPath: "/tmp/Claude-3p/claude_desktop_config.json"),
                     codexConfigURL: URL(fileURLWithPath: "/tmp/.codex/config.toml")
@@ -235,7 +235,7 @@ struct InstallationExecutionServiceTests {
                 ),
                 clientConfigEnvironment: ClientConfigEnvironment(
                     claudeSettingsURL: temp.appendingPathComponent(".claude/settings.json"),
-                    claudeDesktopGatewayURL: temp.appendingPathComponent("Claude-3p/configLibrary/cj-local-proxy.json"),
+                    claudeDesktopGatewayURL: temp.appendingPathComponent("Claude-3p/configLibrary/\(ClientConfigEnvironment.claudeDesktopConfigID).json"),
                     claudeDesktopMetaURL: temp.appendingPathComponent("Claude-3p/configLibrary/_meta.json"),
                     claudeDesktopModeURL: temp.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
                     codexConfigURL: temp.appendingPathComponent(".codex/config.toml")

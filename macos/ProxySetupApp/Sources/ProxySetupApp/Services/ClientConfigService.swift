@@ -1,6 +1,8 @@
 import Foundation
 
 struct ClientConfigEnvironment: Equatable {
+    static let claudeDesktopConfigID = "9f5d0b76-5b35-4c9e-9d5d-2f2a8f8f8c01"
+
     var claudeSettingsURL: URL
     var claudeDesktopGatewayURL: URL
     var claudeDesktopMetaURL: URL
@@ -18,7 +20,7 @@ struct ClientConfigEnvironment: Equatable {
         )
         return ClientConfigEnvironment(
             claudeSettingsURL: home.appendingPathComponent(".claude/settings.json"),
-            claudeDesktopGatewayURL: configLibrary.appendingPathComponent("cj-local-proxy.json"),
+            claudeDesktopGatewayURL: configLibrary.appendingPathComponent("\(claudeDesktopConfigID).json"),
             claudeDesktopMetaURL: configLibrary.appendingPathComponent("_meta.json"),
             claudeDesktopModeURL: claudeDesktopRoot.appendingPathComponent("claude_desktop_config.json"),
             codexConfigURL: home.appendingPathComponent(".codex/config.toml")
@@ -27,7 +29,7 @@ struct ClientConfigEnvironment: Equatable {
 }
 
 struct ClientConfigService {
-    private let claudeDesktopConfigID = "cj-local-proxy"
+    private let claudeDesktopConfigID = ClientConfigEnvironment.claudeDesktopConfigID
     let localToken = "CJ_LOCAL_PROXY_TOKEN"
 
     func renderClaudeSettings(config: SetupConfiguration) throws -> String {
@@ -46,33 +48,32 @@ struct ClientConfigService {
 
     func renderClaudeDesktopGatewayConfig(config: SetupConfiguration) throws -> String {
         let object: [String: Any] = [
-            "id": claudeDesktopConfigID,
-            "name": "CJ Local Proxy",
-            "provider": "gateway",
-            "gatewayBaseUrl": config.claudeDesktopBaseURL.absoluteString,
+            "disableDeploymentModeChooser": true,
+            "inferenceGatewayApiKey": localToken,
+            "inferenceGatewayAuthScheme": "bearer",
             "inferenceGatewayBaseUrl": config.claudeDesktopBaseURL.absoluteString,
-            "gatewayApiKey": localToken,
-            "gatewayAuthScheme": "bearer",
+            "inferenceProvider": "gateway",
             "inferenceModels": [
-                ["id": "claude-sonnet-4-6", "name": "Sonnet 4.6"],
-                ["id": "claude-opus-4-6", "name": "Opus 4.6"],
-                ["id": "claude-haiku-4-5", "name": "Haiku 4.5"],
+                ["labelOverride": "Sonnet 4.6", "name": "claude-sonnet-4-6"],
+                ["labelOverride": "Opus 4.6", "name": "claude-opus-4-6"],
+                ["labelOverride": "Haiku 4.5", "name": "claude-haiku-4-5"],
             ],
-            "hideAnthropicSignIn": true,
+            "unstableDisableModelVerification": true,
         ]
         return try prettyJSONString(object)
     }
 
     func renderClaudeDesktopMetaConfig() throws -> String {
+        let entry: [String: Any] = [
+            "id": claudeDesktopConfigID,
+            "name": "CJ Local Proxy",
+            "provider": "gateway",
+        ]
         let object: [String: Any] = [
             "appliedId": claudeDesktopConfigID,
-            "configs": [
-                [
-                    "id": claudeDesktopConfigID,
-                    "name": "CJ Local Proxy",
-                    "provider": "gateway",
-                ],
-            ],
+            "entries": [entry],
+            "configs": [entry],
+            "isManaged": false,
         ]
         return try prettyJSONString(object)
     }
