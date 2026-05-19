@@ -2,6 +2,8 @@
 
 这个 App 用于在本机配置 Claude Code Desktop/CLI 与 Codex App/CLI 的统一 HTTPS 代理。
 
+用户操作手册见：`docs/proxy-setup-app-user-manual.md`。
+
 ## 开发运行
 
 ```bash

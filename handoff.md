@@ -923,6 +923,31 @@ codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t17-package-che
 - 真实还原必须由用户在 App 内完成备份确认、官方服务确认和 `RESTORE` 门禁后手动触发。
 - 还原原厂服务不会删除 Keychain 中保存的真实 API Key。
 
+### 0.2.25 用户操作手册
+
+本轮新增面向测试机和新电脑的中文操作手册：
+
+- 新增 `docs/proxy-setup-app-user-manual.md`。
+- 更新 `macos/ProxySetupApp/README.md`，指向操作手册。
+
+手册覆盖：
+
+- 获取并打开 `ProxySetupApp-T17-StartRestore-20260519.zip`。
+- 首次打开 App 后的左侧菜单说明。
+- Provider、Base URL、API Key、Keychain service/account 的填写方式。
+- `KEYCHAIN`、`INSTALL`、`RESTORE` 三个确认词的用途。
+- macOS Keychain 弹窗应输入当前 Mac 登录密码。
+- Claude 模型映射与 Codex 默认模型/profile 的使用方式。
+- 安装启动、重新验证、Dashboard 检查、LaunchAgent 检查。
+- 一键还原原厂服务的效果与边界。
+- 常见问题：保存 Key 不可点、Keychain 授权、HTTP 000、客户端未走代理、重新配置服务商。
+
+验证：
+
+```bash
+git diff --check
+```
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。
