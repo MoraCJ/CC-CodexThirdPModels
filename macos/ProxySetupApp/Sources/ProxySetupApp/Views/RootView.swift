@@ -28,9 +28,11 @@ struct RootView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
         } detail: {
-            switch appState.selectedSection ?? .status {
+            switch appState.selectedSection ?? .start {
             case .status:
                 StatusDashboardView()
+            case .start:
+                StartupConfigurationView()
             case .setup:
                 SetupWizardView()
             case .logs:

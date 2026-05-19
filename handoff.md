@@ -859,6 +859,70 @@ codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t16-package-che
 - 等 5-10 秒后可点新版 App 里的 `重新验证 / Recheck`。
 - 仍失败时再看 `~/Library/Application Support/CJLocalProxy/claude-local-proxy/logs/proxy.err.log`。
 
+### 0.2.24 Task 17 完成记录：启动配置入口与还原原厂服务
+
+本轮根据测试机体验反馈继续改 macOS App：把启动相关操作放到左侧菜单里的独立页面，并新增一键还原 Claude/Codex 官方服务的能力。
+
+实现内容：
+
+- 左侧菜单新增 `启动配置 / Start`：
+  - `AppState.selectedSection` 默认改为 `.start`，App 打开后优先看到启动配置页。
+  - 页面集中展示 `检查配置 / Check`、`重新验证 / Recheck`、`打开 Dashboard / Open Dashboard`、准备状态、安装启动和还原原厂服务。
+  - 验证页的安装控件改为复用同一套 `InstallStartControlsView`，避免两处逻辑漂移。
+- 新增 `FactoryRestoreService`：
+  - 还原前要求 `FactoryRestoreConfirmation` 通过：确认备份、确认回到官方服务、输入大写 `RESTORE`。
+  - 为 6 个目标创建 backup manifest：Claude CLI settings、Claude Desktop gateway、Claude Desktop meta、Claude Desktop deployment mode、Codex config、LaunchAgent plist。
+  - 执行 `launchctl bootout` 停止本机代理 LaunchAgent。
+  - 删除本 App 管理的 Claude Desktop gateway 文件。
+  - 从 Claude Desktop `_meta.json` 中移除 `cj-local-proxy` 与对应 `appliedId`。
+  - 从 Claude Desktop `claude_desktop_config.json` 中移除 `deploymentMode: 3p`，保留其它用户字段。
+  - 从 Claude CLI `settings.json` 中移除本 App 写入的代理 env key，保留用户其它 env/key。
+  - 从 Codex `config.toml` 中移除 `ark-coding-app`、`ark-coding-cli` provider、本 App 生成的 profiles 和本 App 写入的顶层默认模型配置，保留用户其它 profile/section。
+  - 删除 `~/Library/LaunchAgents/com.cj.claude-local-https-proxy.plist`。
+  - 不删除 Keychain 中的真实 API Key，避免误删密钥。
+- `AppState`：
+  - 新增还原状态、还原命令记录、还原备份 manifest 路径。
+  - 新增 `restoreFactoryDefaults()`，还原成功后把 proxy status 标记为 `已还原官方服务 / Official defaults restored`。
+- 新增 `StartupConfigurationView` 与 `StartupActionsView`：
+  - 启动页把安装与还原作为两个主操作卡片。
+  - 还原卡片明确说明“只移除本 App 管理的代理配置，Keychain API Key 保留”。
+- 测试：
+  - 新增 `FactoryRestoreServiceTests`，全部使用临时目录和 mock runner。
+  - 覆盖只移除 managed config、不破坏用户配置、创建 backup manifest、缺确认拒绝执行。
+  - `SmokeTests` 覆盖侧边栏启动入口、AppState 还原门禁与注入 executor。
+- 文档：
+  - 更新 `macos/ProxySetupApp/README.md`。
+  - 更新 `docs/superpowers/plans/2026-05-14-macos-local-proxy-setup-app.md`，新增 Task 17。
+
+验证通过：
+
+```bash
+cd macos/ProxySetupApp && swift test
+cd macos/ProxySetupApp && swift build
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+./script/build_and_run.sh --verify
+codesign --force --deep --sign - dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+ditto -c -k --keepParent dist/ProxySetupApp.app dist/ProxySetupApp-T17-StartRestore-20260519.zip
+ditto -x -k dist/ProxySetupApp-T17-StartRestore-20260519.zip /tmp/proxysetupapp-t17-package-check
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t17-package-check/ProxySetupApp.app
+```
+
+新测试包：
+
+- `dist/ProxySetupApp-T17-StartRestore-20260519.zip`
+- zip 大小：约 `2.5M`。
+- SHA256：`fa76e45cf4c7e68c0854e5108b3581d71dc99f5f8d222aac77d6d21cf8c15c4b`。
+
+安全备注：
+
+- 本轮自动化测试没有写本机真实 `~/.codex/config.toml`、`~/.claude/settings.json`、Claude Desktop config、真实 LaunchAgent 或生产 Keychain。
+- 真实安装仍必须由用户在 App 内完成检查和 `INSTALL` 门禁后手动触发。
+- 真实还原必须由用户在 App 内完成备份确认、官方服务确认和 `RESTORE` 门禁后手动触发。
+- 还原原厂服务不会删除 Keychain 中保存的真实 API Key。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。

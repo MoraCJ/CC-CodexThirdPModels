@@ -5,10 +5,11 @@ import Foundation
 final class AppState: ObservableObject {
     typealias InstallationExecutor = (SetupConfiguration, InstallationConfirmation) async throws -> InstallationExecutionResult
     typealias VerificationExecutor = (SetupConfiguration) async -> VerificationSummary
+    typealias FactoryRestoreExecutor = (SetupConfiguration, FactoryRestoreConfirmation) async throws -> FactoryRestoreResult
 
     @Published var proxyStatusLabel: String = "未检测 / Not Checked"
     @Published var setupConfiguration: SetupConfiguration = .default
-    @Published var selectedSection: Section? = .status
+    @Published var selectedSection: Section? = .start
     @Published var selectedSetupTab: SetupTab = .provider
     @Published var claudeAPIKey: String = ""
     @Published var codexAPIKey: String = ""
@@ -23,9 +24,15 @@ final class AppState: ObservableObject {
     @Published var backupManifestPath: String?
     @Published var isInstalling = false
     @Published var isVerifyingInstallation = false
+    @Published var factoryRestoreConfirmation = FactoryRestoreConfirmation()
+    @Published var factoryRestoreStatusMessage: String = "尚未还原 / Not restored"
+    @Published var factoryRestoreCommandRecords: [InstallationCommandRecord] = []
+    @Published var factoryRestoreBackupManifestPath: String?
+    @Published var isRestoringFactoryDefaults = false
 
     private let installationExecutor: InstallationExecutor
     private let verificationExecutor: VerificationExecutor
+    private let factoryRestoreExecutor: FactoryRestoreExecutor
 
     init(
         installationExecutor: @escaping InstallationExecutor = { config, confirmation in
@@ -36,13 +43,21 @@ final class AppState: ObservableObject {
         },
         verificationExecutor: @escaping VerificationExecutor = { config in
             await VerificationService().run(config: config)
+        },
+        factoryRestoreExecutor: @escaping FactoryRestoreExecutor = { config, confirmation in
+            try await FactoryRestoreService().restore(
+                config: config,
+                confirmation: confirmation
+            )
         }
     ) {
         self.installationExecutor = installationExecutor
         self.verificationExecutor = verificationExecutor
+        self.factoryRestoreExecutor = factoryRestoreExecutor
     }
 
     enum Section: String, CaseIterable, Identifiable, Hashable {
+        case start
         case status
         case setup
         case logs
@@ -52,6 +67,7 @@ final class AppState: ObservableObject {
         var title: String {
             switch self {
             case .status: return "状态 / Status"
+            case .start: return "启动配置 / Start"
             case .setup: return "设置向导 / Setup"
             case .logs: return "日志 / Logs"
             }
@@ -60,6 +76,7 @@ final class AppState: ObservableObject {
         var systemImage: String {
             switch self {
             case .status: return "gauge.with.dots.needle.67percent"
+            case .start: return "power.circle.fill"
             case .setup: return "wand.and.stars"
             case .logs: return "doc.text.magnifyingglass"
             }
@@ -239,6 +256,31 @@ final class AppState: ObservableObject {
         return "可以执行安装并启动本机代理。"
     }
 
+    var canRestoreFactoryDefaults: Bool {
+        factoryRestoreConfirmation.canProceed &&
+            !isInstalling &&
+            !isRestoringFactoryDefaults
+    }
+
+    var factoryRestoreDisabledReason: String {
+        if isInstalling {
+            return "正在安装与验证，请稍候。"
+        }
+        if isRestoringFactoryDefaults {
+            return "正在还原配置，请稍候。"
+        }
+        if !factoryRestoreConfirmation.reviewedBackups {
+            return "请确认还原前会创建备份。"
+        }
+        if !factoryRestoreConfirmation.understandsOfficialDefaults {
+            return "请确认还原后 Claude 和 Codex 会回到官方服务。"
+        }
+        if factoryRestoreConfirmation.typedPhrase != "RESTORE" {
+            return "请输入大写 RESTORE 解锁还原。"
+        }
+        return "可以还原 Claude 与 Codex 到官方服务。"
+    }
+
     func runInstallation() async {
         guard canRunInstallation else {
             installationStatusMessage = "安装前请完成确认 / \(installationDisabledReason)"
@@ -286,6 +328,35 @@ final class AppState: ObservableObject {
             : "验证未通过，请稍后重试或查看代理日志 / Verification failed, retry or check proxy logs"
 
         isVerifyingInstallation = false
+    }
+
+    func restoreFactoryDefaults() async {
+        guard canRestoreFactoryDefaults else {
+            factoryRestoreStatusMessage = "恢复前请完成确认 / \(factoryRestoreDisabledReason)"
+            return
+        }
+
+        isRestoringFactoryDefaults = true
+        factoryRestoreStatusMessage = "正在还原官方服务配置 / Restoring official defaults..."
+        factoryRestoreCommandRecords = []
+        factoryRestoreBackupManifestPath = nil
+
+        do {
+            let result = try await factoryRestoreExecutor(
+                setupConfiguration,
+                factoryRestoreConfirmation
+            )
+            factoryRestoreCommandRecords = result.commandRecords
+            factoryRestoreBackupManifestPath = result.backupResult.manifestURL.path
+            installationVerificationSummary = nil
+            installationStatusMessage = "已还原官方服务；如需代理，请重新执行安装。"
+            factoryRestoreStatusMessage = "已还原官方服务 / Official defaults restored"
+            proxyStatusLabel = "已还原官方服务 / Official defaults restored"
+        } catch {
+            factoryRestoreStatusMessage = "还原失败 / \(error.localizedDescription)"
+        }
+
+        isRestoringFactoryDefaults = false
     }
 }
 

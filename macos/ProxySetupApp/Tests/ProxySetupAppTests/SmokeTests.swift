@@ -11,6 +11,13 @@ struct SmokeTests {
     }
 
     @Test
+    func sidebarSectionsExposeStartConfiguration() {
+        let titles = AppState.Section.allCases.map(\.title)
+
+        #expect(titles.contains("启动配置 / Start"))
+    }
+
+    @Test
     @MainActor
     func appStateValidatesDefaultConfiguration() {
         let state = AppState()
@@ -106,6 +113,40 @@ struct SmokeTests {
         #expect(state.proxyStatusLabel.contains("运行中"))
     }
 
+    @Test
+    @MainActor
+    func appStateRequiresRestoreGateBeforeRestoringFactoryDefaults() async {
+        var restoreCallCount = 0
+        let state = AppState(factoryRestoreExecutor: { _, _ in
+            restoreCallCount += 1
+            return SmokeTests.successfulFactoryRestoreResult()
+        })
+
+        await state.restoreFactoryDefaults()
+
+        #expect(restoreCallCount == 0)
+        #expect(state.factoryRestoreStatusMessage.contains("完成确认"))
+    }
+
+    @Test
+    @MainActor
+    func appStateRunsInjectedFactoryRestoreAndRecordsResult() async {
+        let state = AppState(factoryRestoreExecutor: { _, confirmation in
+            #expect(confirmation.canProceed)
+            return SmokeTests.successfulFactoryRestoreResult()
+        })
+        state.factoryRestoreConfirmation.reviewedBackups = true
+        state.factoryRestoreConfirmation.understandsOfficialDefaults = true
+        state.factoryRestoreConfirmation.typedPhrase = "RESTORE"
+
+        await state.restoreFactoryDefaults()
+
+        #expect(state.factoryRestoreStatusMessage.contains("已还原"))
+        #expect(state.proxyStatusLabel.contains("官方服务"))
+        #expect(state.factoryRestoreCommandRecords.map(\.title) == ["Stop LaunchAgent"])
+        #expect(state.factoryRestoreBackupManifestPath == "/tmp/restore-manifest.json")
+    }
+
     private static func successfulInstallationResult() -> InstallationExecutionResult {
         let config = SetupConfiguration.default
         let installRoot = URL(fileURLWithPath: "/tmp/CJLocalProxy")
@@ -151,6 +192,24 @@ struct SmokeTests {
                     url: URL(string: "https://127.0.0.1:38443/health"),
                     status: .passed,
                     detail: "HTTP 200"
+                ),
+            ]
+        )
+    }
+
+    private static func successfulFactoryRestoreResult() -> FactoryRestoreResult {
+        FactoryRestoreResult(
+            backupResult: BackupResult(
+                manifest: BackupManifest(version: 1, createdAt: "20260519110000", entries: []),
+                manifestURL: URL(fileURLWithPath: "/tmp/restore-manifest.json")
+            ),
+            commandRecords: [
+                InstallationCommandRecord(
+                    title: "Stop LaunchAgent",
+                    command: ["launchctl", "bootout"],
+                    exitCode: 0,
+                    stdout: "ok",
+                    stderr: ""
                 ),
             ]
         )
