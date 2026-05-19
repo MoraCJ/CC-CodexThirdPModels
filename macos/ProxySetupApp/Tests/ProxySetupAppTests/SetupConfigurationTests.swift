@@ -10,6 +10,7 @@ struct SetupConfigurationTests {
         #expect(config.claudeCLIBaseURL.absoluteString == "https://127.0.0.1:38443/claude-cli")
         #expect(config.codexAppBaseURL.absoluteString == "https://127.0.0.1:38443/codex-app/v1")
         #expect(config.codexCLIBaseURL.absoluteString == "https://127.0.0.1:38443/codex-cli/v1")
+        #expect(config.claudeDesktopSupportDirectoryName == "Claude-3p")
         #expect(config.claudeProvider.protocolType == .anthropicCompatible)
         #expect(config.codexProvider.protocolType == .openAICompatible)
     }
@@ -41,6 +42,16 @@ struct SetupConfigurationTests {
         config.listenPort = 70000
 
         #expect(throws: SetupConfiguration.ValidationError.invalidPort) {
+            try config.validate()
+        }
+    }
+
+    @Test
+    func rejectsInvalidClaudeDesktopSupportDirectoryName() {
+        var config = SetupConfiguration.default
+        config.claudeDesktopSupportDirectoryName = "../Claude-3p"
+
+        #expect(throws: SetupConfiguration.ValidationError.invalidClaudeDesktopSupportDirectoryName("../Claude-3p")) {
             try config.validate()
         }
     }

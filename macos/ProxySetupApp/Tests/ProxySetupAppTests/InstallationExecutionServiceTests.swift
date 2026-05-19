@@ -10,6 +10,10 @@ struct InstallationExecutionServiceTests {
         let installRoot = temp.appendingPathComponent("install")
         let launchAgents = temp.appendingPathComponent("LaunchAgents")
         let clientRoot = temp.appendingPathComponent("home")
+        let desktopEnvironment = ClaudeDesktopEnvironment(
+            supportDirectoryName: "Claude-3p",
+            homeDirectory: temp.appendingPathComponent("desktop-home")
+        )
         defer { try? FileManager.default.removeItem(at: temp) }
 
         try createProxySource(at: source)
@@ -46,6 +50,7 @@ struct InstallationExecutionServiceTests {
                 claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
                 codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
             ),
+            claudeDesktopEnvironment: desktopEnvironment,
             confirmation: confirmation,
             runner: runner,
             timestamp: "20260518190000",
@@ -91,7 +96,20 @@ struct InstallationExecutionServiceTests {
 
         let lock = NSLock()
         var events: [InstallationProgressEvent] = []
-        let runner = RecordingCommandRunner()
+        let runner = RecordingCommandRunner(outputs: [
+            "command -v claude": CommandResult(exitCode: 0, stdout: "/opt/homebrew/bin/claude\n", stderr: "")
+        ])
+        let desktopEnvironment = ClaudeDesktopEnvironment(
+            supportDirectoryName: SetupConfiguration.default.claudeDesktopSupportDirectoryName,
+            homeDirectory: clientRoot
+        )
+        try FileManager.default.createDirectory(
+            at: desktopEnvironment.logURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try """
+        2026-05-19 21:15:54 [info] [CCD] Downloading bundle from https://downloads.claude.ai/claude-code-releases/2.1.138/darwin-arm64/claude.app.tar.zst
+        """.write(to: desktopEnvironment.logURL, atomically: true, encoding: .utf8)
 
         _ = try await InstallationExecutionService(label: "com.cj.proxy").execute(
             config: .default,
@@ -109,6 +127,7 @@ struct InstallationExecutionServiceTests {
                 claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
                 codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
             ),
+            claudeDesktopEnvironment: desktopEnvironment,
             confirmation: confirmation,
             runner: runner,
             timestamp: "20260518190500",
@@ -121,6 +140,8 @@ struct InstallationExecutionServiceTests {
         )
 
         #expect(events.contains { $0.title.contains("探测依赖") && $0.status == .succeeded })
+        #expect(events.contains { $0.title.contains("检查 Claude Desktop Host") && $0.status == .succeeded })
+        #expect(events.contains { $0.title.contains("初始化 Claude Desktop Host") && $0.status == .succeeded })
         #expect(events.contains { $0.title == "Bootstrap LaunchAgent" && $0.status == .running })
         #expect(events.contains { $0.title == "Start LaunchAgent" && $0.status == .succeeded })
         #expect(events.contains { $0.title.contains("验证端点") && $0.status == .succeeded })
@@ -133,6 +154,10 @@ struct InstallationExecutionServiceTests {
         let installRoot = temp.appendingPathComponent("install")
         let launchAgents = temp.appendingPathComponent("LaunchAgents")
         let clientRoot = temp.appendingPathComponent("home")
+        let desktopEnvironment = ClaudeDesktopEnvironment(
+            supportDirectoryName: "Claude-3p",
+            homeDirectory: temp.appendingPathComponent("desktop-home")
+        )
         defer { try? FileManager.default.removeItem(at: temp) }
 
         try createProxySource(at: source)
@@ -168,6 +193,7 @@ struct InstallationExecutionServiceTests {
                 claudeDesktopModeURL: clientRoot.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
                 codexConfigURL: clientRoot.appendingPathComponent(".codex/config.toml")
             ),
+            claudeDesktopEnvironment: desktopEnvironment,
             confirmation: confirmation,
             runner: runner,
             timestamp: "20260518190600",
@@ -212,6 +238,10 @@ struct InstallationExecutionServiceTests {
     func executeStopsOnRequiredCommandFailure() async throws {
         let temp = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let source = temp.appendingPathComponent("source")
+        let desktopEnvironment = ClaudeDesktopEnvironment(
+            supportDirectoryName: "Claude-3p",
+            homeDirectory: temp.appendingPathComponent("desktop-home")
+        )
         defer { try? FileManager.default.removeItem(at: temp) }
         try createProxySource(at: source)
 
@@ -240,6 +270,7 @@ struct InstallationExecutionServiceTests {
                     claudeDesktopModeURL: temp.appendingPathComponent("Claude-3p/claude_desktop_config.json"),
                     codexConfigURL: temp.appendingPathComponent(".codex/config.toml")
                 ),
+                claudeDesktopEnvironment: desktopEnvironment,
                 confirmation: confirmation,
                 runner: runner,
                 timestamp: "20260518190200",

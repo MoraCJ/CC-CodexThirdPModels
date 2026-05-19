@@ -203,11 +203,13 @@ App 修改用户配置文件前必须备份：
 ```text
 ~/.claude/settings.json
 ~/.codex/config.toml
-~/Library/Application Support/Claude-3p/configLibrary/*.json
+~/Library/Application Support/<Claude Desktop data root>/configLibrary/*.json
 ~/Library/LaunchAgents/com.cj.claude-local-https-proxy.plist
 ```
 
 备份文件名包含时间戳。由 App 生成的备份不应该包含 App 导出的明文真实 API Key。
+
+Claude Desktop data root 默认是 `Claude-3p`，但 App 必须把它作为可配置值统一派生路径。Desktop Host 初始化只允许创建本 App 管理的 launcher、软链和 `.verified`，不得把 Claude 官方 host bundle 下载后打包进仓库或 App 资源。
 
 ## 架构
 

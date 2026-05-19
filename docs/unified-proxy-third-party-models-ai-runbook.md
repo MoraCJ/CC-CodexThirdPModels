@@ -371,6 +371,8 @@ Claude Desktop 额外看：
 tail -n 200 "$HOME/Library/Logs/Claude-3p/main.log"
 ```
 
+如果 Desktop data root 不是默认 `Claude-3p`，以 macOS 设置 App `启动配置 / Start` 中的 `Data root` 为准。T20 版 App 会在 `Claude Desktop Host / Desktop 运行组件` 里显示当前 data root、host version、`.verified` 和 host binary 检查结果。
+
 成功信号：
 
 - `launchctl print` 显示 `state = running`，并出现 `properties = keepalive | runatload`。
@@ -395,8 +397,9 @@ tail -n 200 "$HOME/Library/Logs/Claude-3p/main.log"
 5. Claude 模型不对：查 `ANTHROPIC_MODEL`、`modelOverrides`、代理映射日志。
 6. Codex 不通：查 `~/.codex/config.toml`、Authorization、`/v1/responses` 分支日志。
 7. Codex tool call 不通：查 Responses bridge 的 tool 转换逻辑。
-8. Cowork 显示 server busy：查 transcript 真实错误；若是 SSL，安装 `claude-ca-launcher`。
-9. 重启后代理没起来：查 plist 是否包含 `RunAtLoad` 与 `KeepAlive`，再查 `launchctl print` 的 `last exit code`、`proxy.err.log` 和证书路径。
+8. Claude CLI 可用但 Desktop 无回复或提示 host binary 不存在：检查 Desktop Host 面板；若 `downloads.claude.ai` 下载失败，用 App 初始化本机 `claude-ca-launcher` 软链和 `.verified`。
+9. Cowork 显示 server busy：查 transcript 真实错误；若是 SSL，安装 `claude-ca-launcher`。
+10. 重启后代理没起来：查 plist 是否包含 `RunAtLoad` 与 `KeepAlive`，再查 `launchctl print` 的 `last exit code`、`proxy.err.log` 和证书路径。
 
 ## 6. 回滚步骤
 
@@ -412,6 +415,7 @@ launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.cj.claude-local-https-
 - `~/.claude/settings.json.bak.*`
 - `~/.codex/config.toml.bak.*`
 - `~/Library/Application Support/Claude-3p/configLibrary/*.json.bak.*`
+- `~/Library/Application Support/<Desktop data root>/claude-code/<version>` 中本 App 创建的 `claude-ca-launcher` 软链和 `.verified`，如需彻底移除 Desktop Host 兜底可手工清理。
 - 如需双代理模式，恢复旧 Codex LaunchAgent，并确认 38444 重新监听。
 
 回滚后仍要分别验证 Claude 和 Codex，不要只看进程存在。

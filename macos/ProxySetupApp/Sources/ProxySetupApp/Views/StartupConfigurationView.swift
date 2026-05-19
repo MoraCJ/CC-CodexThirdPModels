@@ -34,6 +34,14 @@ struct StartupConfigurationView: View {
                     }
 
                     SetupPanel(
+                        title: "Claude Desktop Host / Desktop 运行组件",
+                        subtitle: "当设备无法访问 downloads.claude.ai 时，可用本机 claude CLI 初始化 Desktop 期望的 host binary。",
+                        systemImage: "desktopcomputer.and.arrow.down"
+                    ) {
+                        ClaudeDesktopHostPanelView()
+                    }
+
+                    SetupPanel(
                         title: "本机代理 / Local Proxy",
                         subtitle: "只监听本机地址；LaunchAgent 会使用 RunAtLoad 和 KeepAlive。",
                         systemImage: "bolt.horizontal.circle"
@@ -209,6 +217,143 @@ struct StartupConfigurationView: View {
         case .notRun: return .secondary
         case .passed: return .green
         case .failed: return .red
+        }
+    }
+}
+
+private struct ClaudeDesktopHostPanelView: View {
+    @EnvironmentObject private var appState: AppState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+                GridRow {
+                    Text("Data root")
+                        .foregroundStyle(.secondary)
+                    TextField("Claude-3p", text: $appState.setupConfiguration.claudeDesktopSupportDirectoryName)
+                        .textFieldStyle(.roundedBorder)
+                        .controlSize(.large)
+                    Text("默认是 Claude-3p；仅在确认 Desktop 使用其它 3P 数据目录时修改。")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .font(.body)
+
+            HStack(alignment: .top, spacing: 12) {
+                StatusCallout(
+                    text: appState.claudeDesktopHostStatusMessage,
+                    systemImage: hostStatusIcon,
+                    tint: hostStatusTint
+                )
+
+                Button {
+                    Task {
+                        await appState.checkClaudeDesktopHost()
+                    }
+                } label: {
+                    Label(
+                        appState.isCheckingClaudeDesktopHost ? "检查中 / Checking" : "检查 Host / Check Host",
+                        systemImage: appState.isCheckingClaudeDesktopHost ? "hourglass" : "checkmark.circle"
+                    )
+                    .frame(minWidth: 160)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(hostStatusTint)
+                .disabled(appState.isCheckingClaudeDesktopHost || appState.isInitializingClaudeDesktopHost)
+
+                Button {
+                    Task {
+                        await appState.initializeClaudeDesktopHost()
+                    }
+                } label: {
+                    Label(
+                        appState.isInitializingClaudeDesktopHost ? "初始化中 / Initializing" : "初始化 Host / Initialize Host",
+                        systemImage: appState.isInitializingClaudeDesktopHost ? "hourglass" : "link.badge.plus"
+                    )
+                    .frame(minWidth: 210)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .disabled(appState.isCheckingClaudeDesktopHost || appState.isInitializingClaudeDesktopHost)
+            }
+
+            Text("初始化会创建 Desktop host 版本目录、.verified，以及指向本机 claude-ca-launcher 的两个入口；不会下载或提交官方 bundle，也不会写真实 API Key。")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            if let status = appState.claudeDesktopHostStatus {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(status.checks) { check in
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: icon(for: check.status))
+                                .foregroundStyle(tint(for: check.status))
+                                .frame(width: 20)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(check.title)
+                                    .font(.headline)
+                                Text(check.detail)
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                Text(check.path)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                                    .textSelection(.enabled)
+                            }
+                            Spacer()
+                        }
+                        .padding(10)
+                        .background(tint(for: check.status).opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
+                }
+            }
+
+            ProgressEventsView(events: appState.claudeDesktopHostProgressEvents)
+            CommandRecordsView(records: appState.claudeDesktopHostCommandRecords)
+        }
+    }
+
+    private var hostStatusIcon: String {
+        if appState.isCheckingClaudeDesktopHost || appState.isInitializingClaudeDesktopHost {
+            return "hourglass"
+        }
+        if appState.claudeDesktopHostStatus?.isHostBinaryReady == true {
+            return "checkmark.seal.fill"
+        }
+        if appState.claudeDesktopHostStatus == nil {
+            return "info.circle.fill"
+        }
+        return "exclamationmark.triangle.fill"
+    }
+
+    private var hostStatusTint: Color {
+        if appState.isCheckingClaudeDesktopHost || appState.isInitializingClaudeDesktopHost {
+            return .blue
+        }
+        if appState.claudeDesktopHostStatus?.isHostBinaryReady == true {
+            return .green
+        }
+        if appState.claudeDesktopHostStatus == nil {
+            return .orange
+        }
+        return .orange
+    }
+
+    private func icon(for status: ClaudeDesktopHostCheckStatus) -> String {
+        switch status {
+        case .ok: return "checkmark.circle.fill"
+        case .warning: return "exclamationmark.triangle.fill"
+        case .missing: return "xmark.octagon.fill"
+        }
+    }
+
+    private func tint(for status: ClaudeDesktopHostCheckStatus) -> Color {
+        switch status {
+        case .ok: return .green
+        case .warning: return .orange
+        case .missing: return .red
         }
     }
 }

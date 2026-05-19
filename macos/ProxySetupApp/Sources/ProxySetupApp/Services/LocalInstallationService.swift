@@ -89,6 +89,10 @@ struct LocalInstallationService {
                 detail: "\(launchAgentURL.path) with RunAtLoad + KeepAlive"
             ),
             InstallationPlanItem(
+                title: "检查 Claude Desktop Host / Check Desktop host",
+                detail: "检查 \(config.claudeDesktopSupportDirectoryName)/claude-code/<version>、.verified 和 host binary。"
+            ),
+            InstallationPlanItem(
                 title: "准备启动命令 / Prepare launchctl commands",
                 detail: launchCommands.bootstrap.joined(separator: " ")
             ),

@@ -43,9 +43,10 @@ swift test
 - 完成配置检查、确认门禁并输入 `INSTALL` 后，App 可执行本机安装：备份 managed files、复制代理资源、写入客户端配置、生成证书、信任本机 CA、启动 LaunchAgent，并运行 health 验证。
 - 安装过程会流式显示当前步骤、命令、耗时与结果；外部命令有 timeout，避免 `launchctl kickstart` 长时间无反馈。
 - 安装后的 health 验证会逐 endpoint 显示进度；验证耗时已收紧，失败时能更快暴露具体端点。
+- 启动配置页新增 `Claude Desktop Host / Desktop 运行组件`：可检查 Desktop data root、host version、`.verified`、两个 host binary 入口和 VM 目录；当测试机无法访问 `downloads.claude.ai` 时，可用本机 `claude` CLI 初始化 Desktop 期望的 host 入口。
 - `还原配置 / Restore` 支持用户显式确认后停止并移除本机代理 LaunchAgent，删除 Claude Desktop 3P gateway，移除 Claude CLI 与 Codex 中由本 App 写入的代理配置片段，让 Claude/Codex 回到官方服务。
-- `日志 / Logs` 可查看本次安装/还原进度与命令记录，并只读 tail `proxy.log`、`proxy.err.log`、`telemetry.jsonl`。
-- Claude Desktop 配置写入 `~/Library/Application Support/Claude-3p/configLibrary/<UUID>.json`、`_meta.json` 与 `claude_desktop_config.json`；配置 ID 使用稳定 UUID，兼容 Claude Desktop 1.7196+ 的 3P configLibrary 读取规则。Codex 顶层默认模型使用第一个 profile。
+- `日志 / Logs` 可查看本次安装/还原进度与命令记录，并只读 tail `proxy.log`、`proxy.err.log`、`telemetry.jsonl` 和 Claude Desktop `main.log`。
+- Claude Desktop 配置默认写入 `~/Library/Application Support/Claude-3p/configLibrary/<UUID>.json`、`_meta.json` 与 `claude_desktop_config.json`；Desktop data root 名称可在启动配置页调整，配置 ID 使用稳定 UUID，兼容 Claude Desktop 1.7196+ 的 3P configLibrary 读取规则。Codex 顶层默认模型使用第一个 profile。
 - App bundle 打包脚本会复制 SwiftPM 资源 bundle 与 AppIcon。
 
 ## 安全约束
@@ -62,6 +63,8 @@ swift test
 - App 不会自动执行还原；只有用户在还原配置页完成备份确认、官方服务确认并输入 `RESTORE` 后才会停止 LaunchAgent 或移除本 App 管理的 Claude/Codex 代理配置。
 - 还原原厂服务会保留 macOS Keychain 中的真实 API Key，避免误删密钥；如需清理 Keychain，需要用户单独在钥匙串访问或后续专用功能中处理。
 - `InstallationSafetyService` 的备份和回滚测试只使用临时目录；rollback 调用必须传入 allowed target roots；真实安装会先创建可审查的 backup manifest。
+- App 不会下载、打包或提交 Claude 官方 host bundle；Desktop Host 初始化只创建 `claude-ca-launcher`、软链和 `.verified`，launcher 只注入本地 CA、`/claude-desktop` Base URL 与本机占位 token，用于解决受限网络下 Desktop host binary 未完成下载的问题。
+- Desktop data root 默认是 `Claude-3p`，但实现中通过 `ClaudeDesktopEnvironment` 统一派生路径；自动化测试必须注入临时 environment，不得读写本机真实 `~/Library/Application Support/Claude-3p`。
 
 ## 测试环境说明
 

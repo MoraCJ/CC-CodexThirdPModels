@@ -122,6 +122,14 @@ private struct LogsView: View {
                     }
 
                     SetupPanel(
+                        title: "Desktop Host 日志 / Desktop Host Log",
+                        subtitle: "查看 Claude Desktop 3P main.log，排查 host bundle、下载和初始化问题。",
+                        systemImage: "desktopcomputer.and.arrow.down"
+                    ) {
+                        ClaudeDesktopLogTailView()
+                    }
+
+                    SetupPanel(
                         title: "运行日志 / Runtime Logs",
                         subtitle: "只读查看代理运行日志，内容展示前会做基础脱敏。",
                         systemImage: "doc.text.magnifyingglass"
@@ -133,6 +141,61 @@ private struct LogsView: View {
                 .padding(.bottom, 24)
             }
         }
+    }
+}
+
+private struct ClaudeDesktopLogTailView: View {
+    @EnvironmentObject private var appState: AppState
+    @State private var content = "尚未读取 / Not loaded"
+
+    private var logURL: URL {
+        LogService.claudeDesktopLogURL(
+            supportDirectoryName: appState.setupConfiguration.claudeDesktopSupportDirectoryName
+        )
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Button {
+                    reload()
+                } label: {
+                    Label("刷新 / Refresh", systemImage: "arrow.clockwise")
+                }
+                .controlSize(.large)
+
+                Button {
+                    Task {
+                        await appState.checkClaudeDesktopHost()
+                        reload()
+                    }
+                } label: {
+                    Label("检查 Host / Check Host", systemImage: "checkmark.circle")
+                }
+                .controlSize(.large)
+            }
+
+            Text(logURL.path)
+                .font(.system(.callout, design: .monospaced))
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+
+            ScrollView([.vertical, .horizontal]) {
+                Text(content)
+                    .font(.system(.caption, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+            }
+            .frame(minHeight: 220)
+            .background(.thinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .onAppear(perform: reload)
+    }
+
+    private func reload() {
+        content = LogService.tailFile(logURL)
     }
 }
 

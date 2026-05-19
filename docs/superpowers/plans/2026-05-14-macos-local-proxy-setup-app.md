@@ -2075,3 +2075,68 @@ node --check claude-local-proxy/server.js
 node --check claude-local-proxy/telemetry.js
 node --check claude-local-proxy/keychain.js
 ```
+
+## Task 20：Claude Desktop Host 离线初始化与 data root 可配置
+
+状态：已完成。
+
+远端测试机现象：
+
+- Claude Desktop 已进入 `deploymentMode: 3p`，`~/Library/Logs/Claude-3p/main.log` 正常生成。
+- 代理、LaunchAgent 和 `/claude-cli` 均正常，Claude Code CLI 可用。
+- Claude Desktop Cowork 与 Code 对话失败，UI 报 `Host Claude Code binary not available. Check that the download completed.`。
+- 测试机无法访问 `https://downloads.claude.ai`，Desktop 自行下载 `claude-code-releases/2.1.138/...` 超时，导致 `~/Library/Application Support/Claude-3p/claude-code` 为空。
+
+根因：
+
+- Claude Desktop 不复用 Homebrew/npm 安装的 `claude` CLI；它维护自己的 Desktop host bundle。
+- `npm`、`brew` 只影响 CLI 工具链，不决定 Desktop host bundle 目录。
+- Desktop host 目录依赖当前 Desktop 3P data root，默认是 `Claude-3p`，但该目录名不应散落硬编码。
+
+关键实现：
+
+- 新增 `SetupConfiguration.claudeDesktopSupportDirectoryName`，默认 `Claude-3p`，并校验不能为空、不能包含路径分隔符。
+- 新增 `ClaudeDesktopEnvironment`，统一派生：
+  - `~/Library/Application Support/<name>/configLibrary`
+  - `~/Library/Application Support/<name>/claude_desktop_config.json`
+  - `~/Library/Application Support/<name>/claude-code`
+  - `~/Library/Application Support/<name>/claude-code-vm`
+  - `~/Library/Application Support/<name>/vm_bundles/claudevm.bundle`
+  - `~/Library/Logs/<name>/main.log`
+- `ClientConfigEnvironment.defaultEnvironment(...)` 跟随 `claudeDesktopSupportDirectoryName` 派生 Desktop 配置路径，避免只改 UI 却写错目录。
+- 新增 `ClaudeDesktopHostBundleService`：
+  - 从 Desktop `main.log` 解析 host version，兼容 `[CCD] Initialized with version ...` 与 `claude-code-releases/<version>/...` 日志。
+  - 检查 `.verified`、`claude.app/Contents/MacOS/claude`、同级 `claude`、VM 版本目录、VM bundle。
+  - 设备无法联网下载时，使用本机 `claude` CLI 生成 `claude-ca-launcher` 脚本，注入本地 CA、`/claude-desktop` Base URL 和本机占位 token，并把 Desktop 期望的两个 host binary 入口软链到该 launcher。
+  - 写入 `.verified`，避免 Desktop repair/download 流程把手工初始化目录当成未完成下载。
+- 启动配置页新增 `Claude Desktop Host / Desktop 运行组件` 面板：
+  - 展示当前 Desktop data root 名称。
+  - 支持 `检查 Host / Check Host`。
+  - 支持 `初始化 Host / Initialize Host`。
+  - 展示 host 检查项、初始化进度和命令记录。
+- 状态页新增 Desktop Host 状态卡；日志页新增 Desktop Host 日志读取入口。
+- 安装流在写入代理文件后自动检查 Desktop Host；如发现 host version 且 binary 缺失，会尝试离线初始化。
+
+安全边界：
+
+- 不把 Claude 官方 host bundle 放入公开仓库或 App 资源。
+- 初始化只写路径、软链、`.verified` 和本 App 生成的 launcher；不记录真实 API Key、Authorization、Cookie、prompt 或 response。
+- 测试全部使用临时 `ClaudeDesktopEnvironment`，不写本机真实 `~/Library/Application Support/Claude-3p`。
+
+验证：
+
+```bash
+cd macos/ProxySetupApp && swift build
+cd macos/ProxySetupApp && swift test
+node --check claude-local-proxy/server.js
+node --check claude-local-proxy/telemetry.js
+node --check claude-local-proxy/keychain.js
+./script/build_and_run.sh --verify
+codesign --verify --deep --strict --verbose=2 dist/ProxySetupApp.app
+codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t20-package-check/ProxySetupApp.app
+```
+
+交付包：
+
+- `dist/ProxySetupApp-T20-DesktopHostInit-20260519.zip`
+- SHA256：`5c29c339216ee05b6c908bfa869082a61bf5bc70c551fcb02e54e983a4e80187`

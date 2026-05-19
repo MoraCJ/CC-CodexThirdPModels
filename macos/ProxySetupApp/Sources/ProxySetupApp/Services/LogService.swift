@@ -10,6 +10,13 @@ enum LogService {
             .appendingPathComponent(name)
     }
 
+    static func claudeDesktopLogURL(supportDirectoryName: String) -> URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Logs", isDirectory: true)
+            .appendingPathComponent(supportDirectoryName, isDirectory: true)
+            .appendingPathComponent("main.log")
+    }
+
     static func tailFile(_ url: URL, maxCharacters: Int = 12_000) -> String {
         guard FileManager.default.fileExists(atPath: url.path),
               let content = try? String(contentsOf: url, encoding: .utf8) else {
@@ -20,11 +27,27 @@ enum LogService {
     }
 
     static func redact(_ input: String) -> String {
-        input.replacingOccurrences(
-            of: #"(?i)(Authorization:\s*Bearer\s+)[A-Za-z0-9._\-]+"#,
-            with: "$1<REDACTED>",
-            options: .regularExpression
-        )
+        input
+            .replacingOccurrences(
+                of: #"(?i)(Authorization:\s*Bearer\s+)[A-Za-z0-9._\-]+"#,
+                with: "$1<REDACTED>",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"(?i)((?:x-api-key|api[_-]?key|ANTHROPIC_AUTH_TOKEN)\s*[:=]\s*)[A-Za-z0-9._\-]+"#,
+                with: "$1<REDACTED>",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"(?i)((?:Cookie|Set-Cookie):\s*)[^\n\r]+"#,
+                with: "$1<REDACTED>",
+                options: .regularExpression
+            )
+            .replacingOccurrences(
+                of: #"sk-[A-Za-z0-9._\-]+"#,
+                with: "sk-<REDACTED>",
+                options: .regularExpression
+            )
     }
 
     static func maskKey(_ key: String) -> String {

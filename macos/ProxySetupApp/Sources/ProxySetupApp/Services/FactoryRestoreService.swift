@@ -25,7 +25,7 @@ struct FactoryRestoreService {
     func restore(
         config: SetupConfiguration,
         environment: InstallationEnvironment = .defaultEnvironment(),
-        clientConfigEnvironment: ClientConfigEnvironment = .defaultEnvironment(),
+        clientConfigEnvironment: ClientConfigEnvironment? = nil,
         confirmation: FactoryRestoreConfirmation,
         runner: CommandRunning = CommandRunner(),
         timestamp: String = InstallationExecutionService.timestamp(),
@@ -43,8 +43,11 @@ struct FactoryRestoreService {
         )
         let launchAgentURL = environment.launchAgentDirectory
             .appendingPathComponent("\(label).plist")
+        let resolvedClientConfigEnvironment = clientConfigEnvironment ?? ClientConfigEnvironment.defaultEnvironment(
+            claudeDesktopSupportDirectoryName: config.claudeDesktopSupportDirectoryName
+        )
         let changes = restoreTargets(
-            clientConfigEnvironment: clientConfigEnvironment,
+            clientConfigEnvironment: resolvedClientConfigEnvironment,
             launchAgentURL: launchAgentURL
         )
         let backupDirectory = environment.installRoot
@@ -96,13 +99,13 @@ struct FactoryRestoreService {
             status: .running,
             progress: progress
         )
-        try restoreClaudeCLISettings(at: clientConfigEnvironment.claudeSettingsURL)
-        try removeIfExists(clientConfigEnvironment.claudeDesktopGatewayURL)
-        try removeIfExists(legacyClaudeDesktopGatewayURL(from: clientConfigEnvironment))
-        try restoreClaudeDesktopMeta(at: clientConfigEnvironment.claudeDesktopMetaURL)
-        try restoreClaudeDesktopMode(at: clientConfigEnvironment.claudeDesktopModeURL)
+        try restoreClaudeCLISettings(at: resolvedClientConfigEnvironment.claudeSettingsURL)
+        try removeIfExists(resolvedClientConfigEnvironment.claudeDesktopGatewayURL)
+        try removeIfExists(legacyClaudeDesktopGatewayURL(from: resolvedClientConfigEnvironment))
+        try restoreClaudeDesktopMeta(at: resolvedClientConfigEnvironment.claudeDesktopMetaURL)
+        try restoreClaudeDesktopMode(at: resolvedClientConfigEnvironment.claudeDesktopModeURL)
         try restoreCodexConfig(
-            at: clientConfigEnvironment.codexConfigURL,
+            at: resolvedClientConfigEnvironment.codexConfigURL,
             profileNames: config.codexProfiles.map(\.name)
         )
         try removeIfExists(launchAgentURL)

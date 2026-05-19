@@ -1,6 +1,6 @@
 # CJ Local Proxy macOS App 操作手册
 
-适用版本：`ProxySetupApp-T18-FlowStreaming-20260519`
+适用版本：`ProxySetupApp-T20-DesktopHostInit-20260519`
 
 本手册用于在一台 macOS 测试机或新电脑上，通过 `CJ Local Proxy` App 配置 Claude Code Desktop/CLI 与 Codex App/CLI 使用本机 HTTPS 代理访问第三方模型服务商，并在需要时一键还原回官方服务。
 
@@ -9,7 +9,7 @@
 ### 1.1 需要提前安装的软件
 
 - macOS 14 或更新版本。
-- Claude Code Desktop / Claude Code CLI，按实际需要安装。
+- Claude Code Desktop / Claude Code CLI，按实际需要安装。若这台 Mac 无法访问 `downloads.claude.ai`，建议同时安装 Claude Code CLI，因为 App 会用本机 CLI 初始化 Claude Desktop 运行组件。
 - Codex App / Codex CLI，按实际需要安装。
 
 配置代理本身不要求先打开 Claude 或 Codex，但建议安装完成后至少打开一次对应客户端，确认系统已经创建基础目录。完成代理安装后，需要重启 Claude/Codex 客户端，让它们重新读取配置。
@@ -19,13 +19,13 @@
 当前测试包：
 
 ```text
-dist/ProxySetupApp-T18-FlowStreaming-20260519.zip
+dist/ProxySetupApp-T20-DesktopHostInit-20260519.zip
 ```
 
 SHA256：
 
 ```text
-5f6ed4922b46810eeaf66eab5e9a6a41ba99457a7607da5df41dedccb3a7f1fd
+5c29c339216ee05b6c908bfa869082a61bf5bc70c551fcb02e54e983a4e80187
 ```
 
 复制到测试机后解压，得到：
@@ -189,6 +189,44 @@ Codex 当前实际默认使用一个顶层模型。App 中第一个 Codex profil
 - Base URL 必须是 `https://` 开头。
 - `node` 是必需依赖，缺失时不能安装；`npm`、`brew`、`claude`、`codex` 缺失只会警告，不阻断代理安装。
 
+### 5.1 Claude Desktop Host 检查
+
+`启动配置 / Start` 里还有一块：
+
+```text
+Claude Desktop Host / Desktop 运行组件
+```
+
+这里用于解决一种常见情况：Claude CLI 已经能用，但 Claude Desktop Cowork/Code 没有回复，并提示：
+
+```text
+Host Claude Code binary not available. Check that the download completed.
+```
+
+这通常表示 Claude Desktop 想从 `downloads.claude.ai` 下载自己的 host bundle，但当前网络下载失败。它不是 `npm` 或 `brew` 目录问题，也不是截图里 Settings/Profile 的名字问题。
+
+操作方式：
+
+1. `Data root` 默认保持 `Claude-3p`。只有确认 Desktop 使用了其它 3P 数据目录时才修改。
+2. 点击 `检查 Host / Check Host`。
+3. 如果提示未解析到版本，先打开 Claude Desktop 一次，让它写出 `main.log`，再回到 App 重新检查。
+4. 如果已经解析到版本但缺少 host binary，点击 `初始化 Host / Initialize Host`。
+
+初始化会做这些事：
+
+- 在 `~/Library/Application Support/<Data root>/claude-code/<version>/` 下创建 Desktop 期望的目录。
+- 创建 `.verified`，避免 Desktop 把目录当作未完成下载并清理。
+- 创建 `claude.app/Contents/MacOS/claude` 和同级 `claude` 两个入口，指向本机代理目录中的 `claude-ca-launcher`。
+- `claude-ca-launcher` 会调用本机 `claude` CLI，并注入本地 CA、`/claude-desktop` Base URL 和本机占位 token。
+
+初始化不会做这些事：
+
+- 不会下载 Claude 官方 host bundle。
+- 不会把官方 bundle 放进 App 或仓库。
+- 不会写真实 API Key。
+
+初始化完成后，完全退出并重新打开 Claude Desktop，再发起一次简单对话。若仍失败，到 `日志 / Logs` 查看 `Desktop Host 日志 / Desktop Host Log`。
+
 ## 6. 安装并启动代理
 
 在 `启动配置 / Start` 页面找到：
@@ -316,7 +354,7 @@ keepalive
 如果你想暂时不用第三方代理，回到 Claude/Codex 官方服务，进入：
 
 ```text
-启动配置 / Start
+还原配置 / Restore
 ```
 
 找到：

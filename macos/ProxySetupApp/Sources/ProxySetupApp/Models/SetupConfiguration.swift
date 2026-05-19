@@ -49,6 +49,7 @@ struct SetupConfiguration: Equatable, Codable {
     var listenHost: String
     var listenPort: Int
     var keychainService: String
+    var claudeDesktopSupportDirectoryName: String
     var claudeProvider: ProviderConfiguration
     var codexProvider: ProviderConfiguration
     var claudeModels: ClaudeModelMapping
@@ -58,6 +59,7 @@ struct SetupConfiguration: Equatable, Codable {
         listenHost: "127.0.0.1",
         listenPort: 38443,
         keychainService: "CJLocalProxy",
+        claudeDesktopSupportDirectoryName: "Claude-3p",
         claudeProvider: ProviderConfiguration(
             isEnabled: true,
             protocolType: .anthropicCompatible,
@@ -120,6 +122,7 @@ struct SetupConfiguration: Equatable, Codable {
         guard !listenHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ValidationError.emptyListenHost
         }
+        try validateDesktopSupportDirectoryName(claudeDesktopSupportDirectoryName)
         if claudeProvider.isEnabled {
             try validateHTTPS(claudeProvider.baseURL)
             guard !claudeModels.opus.trimmed.isEmpty,
@@ -154,11 +157,25 @@ struct SetupConfiguration: Equatable, Codable {
         }
     }
 
+    private func validateDesktopSupportDirectoryName(_ value: String) throws {
+        let trimmed = value.trimmed
+        guard !trimmed.isEmpty else {
+            throw ValidationError.emptyClaudeDesktopSupportDirectoryName
+        }
+        guard trimmed.rangeOfCharacter(from: CharacterSet(charactersIn: "/:")) == nil,
+              trimmed != ".",
+              trimmed != ".." else {
+            throw ValidationError.invalidClaudeDesktopSupportDirectoryName(value)
+        }
+    }
+
     enum ValidationError: Error, Equatable {
         case noEnabledProvider
         case invalidProviderURL(String)
         case invalidPort
         case emptyListenHost
+        case emptyClaudeDesktopSupportDirectoryName
+        case invalidClaudeDesktopSupportDirectoryName(String)
         case emptyClaudeModel
         case emptyCodexProfiles
         case emptyCodexProfile
@@ -176,6 +193,10 @@ extension SetupConfiguration.ValidationError: LocalizedError {
             return "端口必须在 1...65535 / Port must be 1...65535"
         case .emptyListenHost:
             return "监听 Host 不能为空 / Listen host is required"
+        case .emptyClaudeDesktopSupportDirectoryName:
+            return "Claude Desktop 数据目录名不能为空 / Claude Desktop data directory name is required"
+        case .invalidClaudeDesktopSupportDirectoryName(let value):
+            return "Claude Desktop 数据目录名不能包含路径分隔符：\(value)"
         case .emptyClaudeModel:
             return "Claude 三个模型名都不能为空 / Claude model names are required"
         case .emptyCodexProfiles:

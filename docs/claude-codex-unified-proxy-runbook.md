@@ -216,6 +216,7 @@ codex -p ark-glm
 | Dashboard 没有数据 | 先触发一次 Claude/Codex 请求，再看 `logs/telemetry.jsonl`；确认 `telemetry.js` 已部署且 `TELEMETRY_FILE` 路径可写。 |
 | Dashboard 出现 `*_unknown` | 检查对应客户端是否还在使用无前缀旧 URL，应改为 /claude-desktop、/claude-cli、/codex-app/v1 或 /codex-cli/v1。 |
 | Claude App 显示 gateway unhealthy | 检查 Desktop 3P config base URL 是否为 https://127.0.0.1:38443/claude-desktop；再看 main.log 里的 ConfigHealth。 |
+| Claude CLI 可用但 Desktop 无回复 | Desktop host bundle 没下载完成，常见于无法访问 `downloads.claude.ai`；到 macOS 设置 App 的 `启动配置 / Start` 检查 `Claude Desktop Host`，必要时初始化本机 `claude-ca-launcher` 软链和 `.verified`。 |
 | Claude 调用到了错误模型 | 检查请求模型名是否包含 opus/sonnet/haiku；代理只对 Claude 槽位名做映射。 |
 | Codex 401/403 | 检查 Codex provider token 或环境变量；App 应走 ark-coding-app，CLI profiles 应走 ark-coding-cli；不要把真实 key 写进 server.js 或文档。 |
 | Codex tool call 异常 | 重点看 /responses 转换：function_call、function_call_output、tools 参数是否被正确转换。 |

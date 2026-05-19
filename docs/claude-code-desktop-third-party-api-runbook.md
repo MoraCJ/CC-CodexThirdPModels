@@ -304,7 +304,15 @@ Claude Desktop 1.7196+ 要求 `_meta.json.appliedId` 是 UUID，并读取 `confi
 
 ## 10. Desktop host binary 与 `.verified`
 
-Claude Desktop 会维护自己的 Claude Code host binary。版本号不是 CLI 当前版本，而是 Desktop 日志中 `[CCD] Initialized with version ...` 的值。路径错一个版本，App 仍会下载或 repair。
+Claude Desktop 会维护自己的 Claude Code host binary。版本号不是 CLI 当前版本，而是 Desktop 日志中 `[CCD] Initialized with version ...` 或 `claude-code-releases/<version>/...` 的值。路径错一个版本，App 仍会下载或 repair。
+
+在受限网络里，Desktop 可能无法访问 `downloads.claude.ai`，表现为 Claude CLI 可用，但 Desktop Cowork/Code 提示 `Host Claude Code binary not available. Check that the download completed.`。T20 版 macOS 设置 App 已把这条路径产品化：
+
+- `启动配置 / Start` 里提供 `Claude Desktop Host / Desktop 运行组件`。
+- `Data root` 默认是 `Claude-3p`，但可以配置；不要把截图里 Settings/Profile 的用户名称和这个目录名混淆。
+- `检查 Host / Check Host` 会解析 Desktop `main.log`，检查 `.verified`、`claude.app/Contents/MacOS/claude`、同级 `claude`、VM 目录和 VM bundle。
+- `初始化 Host / Initialize Host` 会用本机 `claude` CLI 创建 `claude-ca-launcher`，注入本地 CA、`/claude-desktop` Base URL 和本机占位 token，再把 Desktop 期望的两个 host 入口软链到 launcher，并写入 `.verified`。
+- App 不下载、不打包、不提交 Claude 官方 host bundle。
 
 ```bash
 # 先关闭 Claude 和 Claude Helper
@@ -325,7 +333,7 @@ ln -sfn "$(command -v claude)" "$BASE/claude"
 
 ```
 
-如果只建软链但没有 `.verified`，Desktop repair/download 流程可能在下载超时后清空目录。远端 Mac 上曾观察到 `downloads.claude.ai` 的 darwin/linux 资源下载超时，因此 `.verified` 是必要保护。
+如果只建软链但没有 `.verified`，Desktop repair/download 流程可能在下载超时后清空目录。远端 Mac 上曾观察到 `downloads.claude.ai` 的 darwin/linux 资源下载超时，因此 `.verified` 是必要保护。新电脑优先使用 App 初始化；上面的命令保留为人工排障兜底。
 
 ## 11. Cowork 证书失败的最终修复
 

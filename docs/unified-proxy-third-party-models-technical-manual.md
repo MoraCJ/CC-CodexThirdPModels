@@ -150,7 +150,11 @@ Claude Desktop 1.7196+ 的 `configLibrary/_meta.json` 中 `appliedId` 必须是 
 
 ### 6.3 Desktop host binary 与 Cowork
 
-Desktop Code host 的版本目录以 `~/Library/Logs/Claude-3p/main.log` 中 `[CCD] Initialized with version ...` 为准。若 Cowork 报 SSL 证书失败，需要通过 launcher 注入 `NODE_USE_SYSTEM_CA`、`NODE_EXTRA_CA_CERTS` 与 `SSL_CERT_FILE`。
+Desktop Code host 的版本目录以 `~/Library/Logs/<Desktop data root>/main.log` 中 `[CCD] Initialized with version ...` 或 `claude-code-releases/<version>/...` 为准。默认 data root 是 `Claude-3p`，但 T20 版设置 App 已允许在启动配置页调整目录名，避免 Desktop 版本或环境变量变化后写错路径。
+
+Claude Desktop 不复用 Homebrew/npm 安装的 `claude` CLI。CLI 能用但 Desktop 无回复，且 UI 报 `Host Claude Code binary not available. Check that the download completed.` 时，通常是 Desktop 自己的 host bundle 没下载完成。设置 App 的 `Claude Desktop Host / Desktop 运行组件` 会检查 `.verified` 与两个 host 入口；在无法访问 `downloads.claude.ai` 的机器上，可用本机 `claude` CLI 初始化 `claude-ca-launcher` 软链兜底。
+
+若 Cowork 报 SSL 证书失败，需要通过 launcher 注入 `NODE_USE_SYSTEM_CA`、`NODE_EXTRA_CA_CERTS` 与 `SSL_CERT_FILE`。
 
 ## 7. 配置 Codex
 
@@ -247,6 +251,7 @@ codex app /path/to/project \
 | 故障 | 常见原因 | 处理方式 |
 | --- | --- | --- |
 | Desktop gateway unhealthy | Desktop 3P config base URL 错误、证书未信任或代理未运行 | 先查 /health、Keychain、main.log，再查代理日志 |
+| Claude CLI 可用但 Desktop 对话无回复 | Desktop host bundle 未下载完成，常见于无法访问 downloads.claude.ai | 在设置 App 的启动配置页检查并初始化 Claude Desktop Host；确认 data root 与 main.log 一致 |
 | Claude 调错模型 | 保留了 ANTHROPIC_MODEL 或 modelOverrides，或请求模型名不是 Claude 槽位 | 删除强制模型字段，只保留槽位默认值；映射放在代理层 |
 | Codex 401/403 | API key 未进入 Codex provider 或 Authorization 未透传 | 检查 ~/.codex/config.toml 与环境变量；不要把 key 写入 server.js |
 | Codex tool call 失败 | Responses API 与 Chat Completions 转换不完整 | 检查 function_call、function_call_output、tools、tool_choice 的转换日志 |

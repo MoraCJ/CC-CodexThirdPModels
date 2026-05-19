@@ -27,6 +27,14 @@ struct StatusDashboardView: View {
                         systemImage: "lock.shield",
                         tint: .purple
                     )
+                    StatusCard(
+                        title: "Desktop Host / 运行组件",
+                        value: appState.claudeDesktopHostStatus?.isHostBinaryReady == true
+                            ? "Ready"
+                            : "Needs check",
+                        systemImage: "desktopcomputer.and.arrow.down",
+                        tint: appState.claudeDesktopHostStatus?.isHostBinaryReady == true ? .green : .orange
+                    )
                 }
 
                 SetupPanel(

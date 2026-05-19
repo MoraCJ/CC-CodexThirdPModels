@@ -53,7 +53,8 @@ struct InstallationExecutionService {
     func execute(
         config: SetupConfiguration,
         environment: InstallationEnvironment = .defaultEnvironment(),
-        clientConfigEnvironment: ClientConfigEnvironment = .defaultEnvironment(),
+        clientConfigEnvironment: ClientConfigEnvironment? = nil,
+        claudeDesktopEnvironment: ClaudeDesktopEnvironment? = nil,
         confirmation: InstallationConfirmation,
         runner: CommandRunning = CommandRunner(),
         timestamp: String = InstallationExecutionService.timestamp(),
@@ -99,12 +100,15 @@ struct InstallationExecutionService {
         }
 
         try config.validate()
+        let resolvedClientConfigEnvironment = clientConfigEnvironment ?? ClientConfigEnvironment.defaultEnvironment(
+            claudeDesktopSupportDirectoryName: config.claudeDesktopSupportDirectoryName
+        )
 
         let localService = LocalInstallationService(label: label)
         let localChanges = try localService.managedFileChanges(config: config, environment: resolvedEnvironment)
         let clientChanges = try ClientConfigService().managedClientConfigChanges(
             config: config,
-            environment: clientConfigEnvironment
+            environment: resolvedClientConfigEnvironment
         )
         let managedChanges = localChanges + clientChanges
 
@@ -149,6 +153,54 @@ struct InstallationExecutionService {
         )
 
         var commandRecords: [InstallationCommandRecord] = []
+        if config.claudeProvider.isEnabled {
+            let hostService = ClaudeDesktopHostBundleService()
+            let hostEnvironment = claudeDesktopEnvironment ?? ClaudeDesktopEnvironment(
+                supportDirectoryName: config.claudeDesktopSupportDirectoryName
+            )
+            await emit(
+                title: "检查 Claude Desktop Host / Check Desktop Host",
+                detail: "正在检查 Desktop host binary 与 .verified",
+                status: .running,
+                progress: progress
+            )
+            let hostStatus = try hostService.inspect(environment: hostEnvironment)
+            if hostStatus.version == nil {
+                await emit(
+                    title: "检查 Claude Desktop Host / Check Desktop Host",
+                    detail: "未找到 Desktop host 版本；请打开 Claude Desktop 一次后再初始化。",
+                    status: .skipped,
+                    progress: progress
+                )
+            } else if hostStatus.isHostBinaryReady {
+                await emit(
+                    title: "检查 Claude Desktop Host / Check Desktop Host",
+                    detail: hostStatus.summary,
+                    status: .succeeded,
+                    progress: progress
+                )
+            } else {
+                await emit(
+                    title: "检查 Claude Desktop Host / Check Desktop Host",
+                    detail: hostStatus.summary,
+                    status: .succeeded,
+                    progress: progress
+                )
+                do {
+                    let hostResult = try await hostService.initializeFromLocalCLI(
+                        environment: hostEnvironment,
+                        proxyDirectory: localResult.proxyDirectory,
+                        config: config,
+                        runner: runner,
+                        progress: progress
+                    )
+                    commandRecords.append(contentsOf: hostResult.commandRecords)
+                } catch {
+                    throw InstallationError.desktopHostInitializationFailed(error.localizedDescription)
+                }
+            }
+        }
+
         let certsDirectory = localResult.proxyDirectory.appendingPathComponent("certs", isDirectory: true)
         if shouldGenerateCertificates(in: certsDirectory) {
             for command in CertificateService().generationCommands(certsDirectory: certsDirectory) {
@@ -243,6 +295,7 @@ struct InstallationExecutionService {
         case confirmationRequired
         case commandFailed
         case requiredToolMissing(String)
+        case desktopHostInitializationFailed(String)
 
         var errorDescription: String? {
             switch self {
@@ -252,6 +305,8 @@ struct InstallationExecutionService {
                 return "安装命令执行失败，请查看命令日志。"
             case .requiredToolMissing(let name):
                 return "缺少必需依赖：\(name)。请先安装或修正 PATH 后再重试。"
+            case .desktopHostInitializationFailed(let message):
+                return "Claude Desktop Host 初始化失败：\(message)"
             }
         }
     }

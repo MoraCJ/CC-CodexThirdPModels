@@ -9,21 +9,21 @@ struct ClientConfigEnvironment: Equatable {
     var claudeDesktopModeURL: URL
     var codexConfigURL: URL
 
-    static func defaultEnvironment() -> ClientConfigEnvironment {
-        let home = FileManager.default.homeDirectoryForCurrentUser
-        let claudeDesktopRoot = home.appendingPathComponent(
-            "Library/Application Support/Claude-3p"
-        )
-        let configLibrary = claudeDesktopRoot.appendingPathComponent(
-            "configLibrary",
-            isDirectory: true
+    static func defaultEnvironment(
+        homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser,
+        claudeDesktopSupportDirectoryName: String = SetupConfiguration.default.claudeDesktopSupportDirectoryName
+    ) -> ClientConfigEnvironment {
+        let desktopEnvironment = ClaudeDesktopEnvironment(
+            supportDirectoryName: claudeDesktopSupportDirectoryName,
+            homeDirectory: homeDirectory
         )
         return ClientConfigEnvironment(
-            claudeSettingsURL: home.appendingPathComponent(".claude/settings.json"),
-            claudeDesktopGatewayURL: configLibrary.appendingPathComponent("\(claudeDesktopConfigID).json"),
-            claudeDesktopMetaURL: configLibrary.appendingPathComponent("_meta.json"),
-            claudeDesktopModeURL: claudeDesktopRoot.appendingPathComponent("claude_desktop_config.json"),
-            codexConfigURL: home.appendingPathComponent(".codex/config.toml")
+            claudeSettingsURL: homeDirectory.appendingPathComponent(".claude/settings.json"),
+            claudeDesktopGatewayURL: desktopEnvironment.configLibraryURL
+                .appendingPathComponent("\(claudeDesktopConfigID).json"),
+            claudeDesktopMetaURL: desktopEnvironment.configLibraryURL.appendingPathComponent("_meta.json"),
+            claudeDesktopModeURL: desktopEnvironment.desktopModeURL,
+            codexConfigURL: homeDirectory.appendingPathComponent(".codex/config.toml")
         )
     }
 }
@@ -119,32 +119,35 @@ struct ClientConfigService {
 
     func managedClientConfigChanges(
         config: SetupConfiguration,
-        environment: ClientConfigEnvironment = .defaultEnvironment()
+        environment: ClientConfigEnvironment? = nil
     ) throws -> [ManagedFileChange] {
-        [
+        let resolvedEnvironment = environment ?? ClientConfigEnvironment.defaultEnvironment(
+            claudeDesktopSupportDirectoryName: config.claudeDesktopSupportDirectoryName
+        )
+        return [
             ManagedFileChange(
                 title: "Claude CLI settings",
-                targetURL: environment.claudeSettingsURL,
+                targetURL: resolvedEnvironment.claudeSettingsURL,
                 proposedContents: try renderClaudeSettings(config: config)
             ),
             ManagedFileChange(
                 title: "Claude Desktop gateway config",
-                targetURL: environment.claudeDesktopGatewayURL,
+                targetURL: resolvedEnvironment.claudeDesktopGatewayURL,
                 proposedContents: try renderClaudeDesktopGatewayConfig(config: config)
             ),
             ManagedFileChange(
                 title: "Claude Desktop config library meta",
-                targetURL: environment.claudeDesktopMetaURL,
+                targetURL: resolvedEnvironment.claudeDesktopMetaURL,
                 proposedContents: try renderClaudeDesktopMetaConfig()
             ),
             ManagedFileChange(
                 title: "Claude Desktop deployment mode",
-                targetURL: environment.claudeDesktopModeURL,
+                targetURL: resolvedEnvironment.claudeDesktopModeURL,
                 proposedContents: try renderClaudeDesktopDeploymentModeConfig()
             ),
             ManagedFileChange(
                 title: "Codex config",
-                targetURL: environment.codexConfigURL,
+                targetURL: resolvedEnvironment.codexConfigURL,
                 proposedContents: renderCodexConfig(config: config)
             ),
         ]

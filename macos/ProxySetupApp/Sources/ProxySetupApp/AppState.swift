@@ -14,6 +14,11 @@ final class AppState: ObservableObject {
         FactoryRestoreConfirmation,
         InstallationProgressHandler?
     ) async throws -> FactoryRestoreResult
+    typealias ClaudeDesktopHostChecker = (SetupConfiguration) async -> ClaudeDesktopHostBundleStatus
+    typealias ClaudeDesktopHostInitializer = (
+        SetupConfiguration,
+        InstallationProgressHandler?
+    ) async throws -> ClaudeDesktopHostBundleResult
 
     @Published var proxyStatusLabel: String = "未检测 / Not Checked"
     @Published var setupConfiguration: SetupConfiguration = .default
@@ -35,6 +40,12 @@ final class AppState: ObservableObject {
     @Published var backupManifestPath: String?
     @Published var isInstalling = false
     @Published var isVerifyingInstallation = false
+    @Published var claudeDesktopHostStatus: ClaudeDesktopHostBundleStatus?
+    @Published var claudeDesktopHostStatusMessage: String = "尚未检查 / Not checked"
+    @Published var claudeDesktopHostProgressEvents: [InstallationProgressEvent] = []
+    @Published var claudeDesktopHostCommandRecords: [InstallationCommandRecord] = []
+    @Published var isCheckingClaudeDesktopHost = false
+    @Published var isInitializingClaudeDesktopHost = false
     @Published var factoryRestoreConfirmation = FactoryRestoreConfirmation()
     @Published var factoryRestoreStatusMessage: String = "尚未还原 / Not restored"
     @Published var factoryRestoreCommandRecords: [InstallationCommandRecord] = []
@@ -48,6 +59,8 @@ final class AppState: ObservableObject {
     private let installationExecutor: InstallationExecutor
     private let verificationExecutor: VerificationExecutor
     private let factoryRestoreExecutor: FactoryRestoreExecutor
+    private let claudeDesktopHostChecker: ClaudeDesktopHostChecker
+    private let claudeDesktopHostInitializer: ClaudeDesktopHostInitializer
 
     init(
         installationExecutor: @escaping InstallationExecutor = { config, confirmation, progress in
@@ -66,11 +79,34 @@ final class AppState: ObservableObject {
                 confirmation: confirmation,
                 progress: progress
             )
+        },
+        claudeDesktopHostChecker: @escaping ClaudeDesktopHostChecker = { config in
+            let environment = ClaudeDesktopEnvironment(
+                supportDirectoryName: config.claudeDesktopSupportDirectoryName
+            )
+            return (try? ClaudeDesktopHostBundleService().inspect(environment: environment)) ??
+                ClaudeDesktopHostBundleStatus(environment: environment, version: nil, checks: [])
+        },
+        claudeDesktopHostInitializer: @escaping ClaudeDesktopHostInitializer = { config, progress in
+            let environment = ClaudeDesktopEnvironment(
+                supportDirectoryName: config.claudeDesktopSupportDirectoryName
+            )
+            let proxyDirectory = InstallationEnvironment.defaultEnvironment()
+                .installRoot
+                .appendingPathComponent("claude-local-proxy", isDirectory: true)
+            return try await ClaudeDesktopHostBundleService().initializeFromLocalCLI(
+                environment: environment,
+                proxyDirectory: proxyDirectory,
+                config: config,
+                progress: progress
+            )
         }
     ) {
         self.installationExecutor = installationExecutor
         self.verificationExecutor = verificationExecutor
         self.factoryRestoreExecutor = factoryRestoreExecutor
+        self.claudeDesktopHostChecker = claudeDesktopHostChecker
+        self.claudeDesktopHostInitializer = claudeDesktopHostInitializer
     }
 
     enum Section: String, CaseIterable, Identifiable, Hashable {
@@ -170,6 +206,16 @@ final class AppState: ObservableObject {
                 )
             )
         }
+        if setupConfiguration.claudeProvider.isEnabled {
+            let detail = claudeDesktopHostStatus?.summary ?? claudeDesktopHostStatusMessage
+            items.append(
+                ReadinessItem(
+                    title: "Claude Desktop Host",
+                    detail: detail,
+                    isReady: claudeDesktopHostStatus?.isHostBinaryReady == true
+                )
+            )
+        }
         return items
     }
 
@@ -208,6 +254,9 @@ final class AppState: ObservableObject {
             try setupConfiguration.validate()
             let tools = await PreflightService(runner: CommandRunner()).checkTools()
             toolCheckResult = tools
+            let hostStatus = await claudeDesktopHostChecker(setupConfiguration)
+            claudeDesktopHostStatus = hostStatus
+            claudeDesktopHostStatusMessage = hostStatus.summary
             validationMessage = tools.requiredToolsReady
                 ? "配置与必需依赖可用 / Configuration and required dependencies look valid"
                 : "缺少必需依赖 node；请先安装 Node.js 或修正 PATH。"
@@ -354,6 +403,8 @@ final class AppState: ObservableObject {
         installationCommandRecords = []
         installationProgressEvents = []
         installationVerificationSummary = nil
+        claudeDesktopHostProgressEvents = []
+        claudeDesktopHostCommandRecords = []
         backupManifestPath = nil
 
         do {
@@ -399,6 +450,42 @@ final class AppState: ObservableObject {
             : "验证未通过，请稍后重试或查看代理日志 / Verification failed, retry or check proxy logs"
 
         isVerifyingInstallation = false
+    }
+
+    func checkClaudeDesktopHost() async {
+        guard !isCheckingClaudeDesktopHost, !isInitializingClaudeDesktopHost else { return }
+
+        isCheckingClaudeDesktopHost = true
+        claudeDesktopHostStatusMessage = "正在检查 Claude Desktop Host / Checking Desktop host..."
+        let status = await claudeDesktopHostChecker(setupConfiguration)
+        claudeDesktopHostStatus = status
+        claudeDesktopHostStatusMessage = status.summary
+        isCheckingClaudeDesktopHost = false
+    }
+
+    func initializeClaudeDesktopHost() async {
+        guard !isInitializingClaudeDesktopHost else { return }
+
+        isInitializingClaudeDesktopHost = true
+        claudeDesktopHostStatusMessage = "正在初始化 Claude Desktop Host / Initializing Desktop host..."
+        claudeDesktopHostProgressEvents = []
+        claudeDesktopHostCommandRecords = []
+
+        do {
+            let result = try await claudeDesktopHostInitializer(setupConfiguration) { [weak self] event in
+                await MainActor.run {
+                    self?.claudeDesktopHostProgressEvents.append(event)
+                    self?.claudeDesktopHostStatusMessage = event.status.userFacingPrefix + event.title
+                }
+            }
+            claudeDesktopHostStatus = result.status
+            claudeDesktopHostCommandRecords = result.commandRecords
+            claudeDesktopHostStatusMessage = result.status.summary
+        } catch {
+            claudeDesktopHostStatusMessage = "初始化失败 / \(error.localizedDescription)"
+        }
+
+        isInitializingClaudeDesktopHost = false
     }
 
     func restoreFactoryDefaults() async {
