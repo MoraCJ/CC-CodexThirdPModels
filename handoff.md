@@ -948,6 +948,91 @@ codesign --verify --deep --strict --verbose=2 /tmp/proxysetupapp-t17-package-che
 git diff --check
 ```
 
+### 0.2.26 测试机安装卡住排查记录：Node 路径写死
+
+测试机：`172.16.66.187`，用户：`nh`。
+
+现象：
+
+- 用户点击 `执行安装 / Install & Start` 后，界面长时间停留在 `正在安装并启动代理 / Installing and starting proxy...`。
+- App 缺少实时步骤进度与命令日志，用户无法知道卡在哪一步。
+
+只读排查结果：
+
+- `ProxySetupApp` 仍在运行。
+- 子进程停在：
+
+```text
+launchctl kickstart -k gui/501/com.cj.claude-local-https-proxy
+```
+
+- LaunchAgent 状态：
+
+```text
+state = spawn scheduled
+last exit code = 78: EX_CONFIG
+properties = keepalive | runatload | penalty box | inferred program
+```
+
+- `curl -skS --connect-timeout 2 --max-time 5 https://127.0.0.1:38443/health` 连接失败。
+- `proxy.log` 与 `proxy.err.log` 均为 0 字节，说明代理进程未进入 Node 脚本阶段。
+- LaunchAgent plist 使用：
+
+```text
+/opt/homebrew/bin/node
+```
+
+- 测试机实际 Node 路径：
+
+```text
+/usr/local/bin/node
+v24.15.0
+```
+
+- 测试机不存在：
+
+```text
+/opt/homebrew/bin/node
+/usr/bin/node
+```
+
+根因：
+
+- 当前 App 默认把 LaunchAgent 的 Node 路径固定为 `/opt/homebrew/bin/node`。
+- 在 Intel/Homebrew 或其它安装方式的 Mac 上，Node 可能位于 `/usr/local/bin/node` 或其它路径。
+- LaunchAgent 无法执行不存在的 Node，导致 `EX_CONFIG`，`kickstart` 长时间等待，UI 一直显示安装中。
+
+已确认的问题：
+
+1. 外部依赖路径不能写死：
+   - `node`
+   - `npm`
+   - `brew`
+   - 后续如需 `openssl`、`git`、`curl`，也应先探测真实路径。
+2. `检查配置 / Check` 当前没有把外部依赖探测纳入 preflight。
+3. `安装并启动 / Install & Start` 当前缺少实时进度和命令日志，只在整个流程结束后回填结果。
+4. 外部命令执行缺少明确 timeout；`launchctl kickstart` 这类命令卡住时，用户只能强退 App。
+5. health 验证当前 7 个 endpoint 串行重试，失败场景最坏可达数分钟，且 UI 未显示正在验证哪个 endpoint。
+
+后续修复要求：
+
+- 在 App 内实现依赖探测，优先顺序建议：
+  - `which node`，候选 `/opt/homebrew/bin/node`、`/usr/local/bin/node`。
+  - `which npm`，候选 `/opt/homebrew/bin/npm`、`/usr/local/bin/npm`。
+  - `which brew`，候选 `/opt/homebrew/bin/brew`、`/usr/local/bin/brew`。
+- `LocalInstallationService`/LaunchAgent plist 必须使用探测到的 Node 绝对路径。
+- `检查配置 / Check` 必须显示 Node/npm/brew 探测结果；关键依赖缺失时不允许安装。
+- 安装流程需要实时进度事件：
+  - 创建备份。
+  - 复制代理文件。
+  - 写客户端配置。
+  - 生成证书。
+  - 信任 CA。
+  - bootout/bootstrap/kickstart/print LaunchAgent。
+  - 验证每个 endpoint。
+- UI 需要展示实时命令日志和当前步骤，避免用户只看到“正在安装”。
+- 外部命令 runner 需要 timeout 与更明确错误提示。
+
 ### 0.3 Git 状态
 
 - 主仓库目录：`/Users/chjia/Coding/CC-CodexThirdPModels`。
